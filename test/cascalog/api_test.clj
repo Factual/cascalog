@@ -407,10 +407,7 @@
 ;; TODO: stateful operations should return a map containing :init,
 ;; :op, :finish
 (defbufferop [sum-plus [a]]
-  {:stateful true}
-  ([] (* 3 a))
-  ([state tuples] [(apply + state (map first tuples))])
-  ([state] nil))
+  ([tuples] [(apply + (* 3 a) (map first tuples))]))
 
 (deftest test-hof-ops
   (let [integer [[1] [2] [6]]]
