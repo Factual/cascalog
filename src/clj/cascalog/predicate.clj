@@ -145,7 +145,7 @@
   (or (list? val)
       (instance? java.util.List val)))
 
-(defn- predicate-dispatcher
+(defn detect-predicate-type
   [op & rest]
   (let [ret (cond
              (keyword? op)                     ::option
@@ -159,8 +159,13 @@
              (or (vector? op) (any-list? op))  ::data-structure
              (:pred-type (meta op))            (:pred-type (meta op))
              (instance? IFn op)                ::vanilla-function
-             :else (u/throw-illegal (str op " is an invalid predicate.")))]
+             :else nil)]
     (if (= ret :bufferiter) :buffer ret)))
+
+(defn- predicate-dispatcher
+  [op & rest]
+  (or (apply detect-predicate-type op rest)
+      (u/throw-illegal (str op " is an invalid predicate."))))
 
 (defn generator? [p]
   (contains? #{::tap :generator :cascalog-tap ::data-structure}
@@ -180,7 +185,7 @@
 
 (defn- init-trap-map [options]
   (if-let [trap (:trap options)]
-    (loop [tap (:tap trap)]  
+    (loop [tap (:tap trap)]
       (if (map? tap)
         (recur (:sink tap))
         {(:name trap) tap}))
