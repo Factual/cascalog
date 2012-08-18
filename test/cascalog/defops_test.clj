@@ -20,11 +20,11 @@
 
 (defmapop [ident-stateful [y]]
   "Identity operation."
-  {:stateful true
+  {:include-context true
    :great-meta "yes!"}
-  ([] 3)
-  ([state x] (+ x y state))
-  ([state] nil))
+  ([fp op-call] nil)
+  ([fp op-call x] (+ x y 3))
+  ([op-call] nil))
 
 (deftest defops-arg-parsing-test
   (let [src      [[1] [2]]
