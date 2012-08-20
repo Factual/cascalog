@@ -11,7 +11,7 @@
     [com.twitter/maple "0.2.2"]
     [jackknife "0.1.2"]])
 
-(defproject cascalog/cascalog "1.10.1-factual-SNAPSHOT"
+(defproject factual/cascalog "1.10.1-factual-SNAPSHOT"
   :description "Hadoop without the Hassle."
   :url "http://www.cascalog.org"
   :license {:name "Eclipse Public License"
@@ -26,7 +26,10 @@
   :source-paths ["src/clj"]
   :java-source-paths ["src/jvm"]
   :codox {:include [cascalog.vars cascalog.ops cascalog.io cascalog.api]}
-  :repositories {"conjars" "http://conjars.org/repo/"}
+  :repositories #_{"conjars" "http://conjars.org/repo/"}
+                {"releases" {:url "http://maven.corp.factual.com/nexus/content/repositories/releases"}
+                 "snapshots" {:url "http://maven.corp.factual.com/nexus/content/repositories/snapshots"}
+                 "public" {:url "http://maven.corp.factual.com/nexus/content/groups/public/"}}
   :plugins [[lein-midje "2.0.0-SNAPSHOT"]
             [lein-swank "1.4.2"]
             [lein-clojars "0.8.0"]]
