@@ -337,7 +337,8 @@
 (defmethod build-predicate-specific ::vanilla-function
   [afn _ infields outfields options]
   (let [opvar (search-for-var afn)
-        _ (u/safe-assert opvar "Vanilla functions must have vars associated with them.")
+        _ (u/safe-assert opvar (str "Vanilla functions must have vars associated with them; "
+                                    afn " has no corresponding var"))
         [func-fields out-selector] (if (not-empty outfields)
                                      [outfields Fields/ALL]
                                      [nil nil])
