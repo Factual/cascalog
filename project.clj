@@ -1,8 +1,8 @@
 (def shared
   '[[org.clojure/tools.macro "0.1.1"]
-    [factual/cascading-hadoop "2.0.0"
-     :exclusions [org.codehaus.janino/janino
-                  org.apache.hadoop/hadoop-core]]
+    [factual/cascading-hadoop "2.0.0-SNAPSHOT"]
+    [factual/cascading-core "2.0.0-SNAPSHOT"]
+    [cascading/cascading-local "2.0.0"]
     [org.clojure/tools.macro "0.1.1"]
     [cascading.kryo "0.4.0"]
     [cascalog/carbonite "1.3.0"]
