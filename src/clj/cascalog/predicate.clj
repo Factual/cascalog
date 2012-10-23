@@ -191,8 +191,9 @@
         {(:name trap) tap}))
     {}))
 
-(defn- init-pipe-name [{:keys [trap]}]
+(defn- init-pipe-name [{:keys [trap name]}]
   (or (:name trap)
+      name name
       (uuid)))
 
 (defn- hof-prepend [hof-args & args]
