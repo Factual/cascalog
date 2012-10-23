@@ -12,7 +12,7 @@
     [com.twitter/maple "0.2.0"]
     [jackknife "0.1.2"]])
 
-(defproject factual/cascalog "1.10.1-factual-SNAPSHOT"
+(defproject factual/cascalog "1.10.2-factual-SNAPSHOT"
   :description "Hadoop without the Hassle."
   :url "http://www.cascalog.org"
   :license {:name "Eclipse Public License"
