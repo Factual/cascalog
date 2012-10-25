@@ -259,7 +259,7 @@
              (pairs ?f1 ?v)
              (:sort ?v)
              (select-first ?v :> ?f2))
-    
+
     (test?<- [["a" 3] ["b" 20]]
              [?f1 ?f2]
              (pairs ?f1 ?v)
@@ -348,7 +348,7 @@
                [!!a]
                (age !!a ?b)
                (rec1 !!a _ _ :> true))
-    
+
     (thrown?<- IllegalArgumentException
                [?a !!c]
                (age ?a ?b)
@@ -443,7 +443,7 @@
     (test?<- [["nathan davidlalala"] ["chickenlalala"]]
              [?out]
              ((lala-appended sentence) ?out))
-    
+
     (test?<- [["nathan davida"] ["chickena"]]
              [?out]
              (sentence :>> [?line])
@@ -545,7 +545,7 @@
              [?l !m]
              (wide :#> 5 {4 ?l 2 !m})
              (:distinct false))
-    
+
     (test?<- [[4] [2] [3]]
              [?n3]
              (wide _ ?n1 _ _ ?n2)
@@ -622,7 +622,7 @@
                (num ?n)
                (odd-fail ?n)
                (:trap trap1)))
-    
+
     (is (thrown? Exception (test?<- [[2]]
                                     [?n]
                                     (num ?n)
@@ -705,7 +705,7 @@
              (vals ?a ?b ?c)
              (multipagg ?a ?b ?c :> ?d ?e)
              (c/count ?count))
-    
+
     (test?<- [[12 935 3]]
              [?d ?e ?count]
              (vals ?a ?b ?c)
@@ -719,7 +719,7 @@
              (vals ?v)
              ((KeepEven.) ?v)
              (:distinct false))
-    
+
     (test?<- [[0 true] [1 false]
               [2 true] [3 false]]
              [?v ?b]
@@ -783,9 +783,11 @@
         e1 []]
     (run-union-combine-tests v1 v2 v3)
 
-    "Can't use empty taps inside of a union or combine."
-    (is (thrown? IllegalArgumentException (union e1)))
-    (is (thrown? IllegalArgumentException (combine e1)))))
+    ;; UPDATE(spencer): Muahaha, of course we can...
+    (comment
+      "Can't use empty taps inside of a union or combine."
+      (is (thrown? IllegalArgumentException (union e1)))
+      (is (thrown? IllegalArgumentException (combine e1))))))
 
 (deftest test-select-fields-tap
   (let [data (memory-source-tap ["f1" "f2" "f3" "f4"]
@@ -890,7 +892,7 @@
 
             "Regexes are serializable w/ Kryo."
             [["a" "b"]]
-            (<- [?a ?b]   
+            (<- [?a ?b]
                 ([["a\tb"]] ?s)
                 (c/re-parse [#"[^\s]+"] :< ?s :> ?a ?b)))))
 

@@ -660,9 +660,8 @@
 (defn pluck-tuple [tap]
   (with-open [it (-> (HadoopFlowProcess. (hadoop/job-conf (conf/project-conf)))
                      (.openTapForRead tap))]
-    (if-let [iter (iterator-seq it)]
-      (-> iter first .getTuple Tuple. Util/coerceFromTuple vec)
-      (throw-illegal "Cascading tap is empty -- tap must contain tuples."))))
+    (when-let [iter (iterator-seq it)]
+      (-> iter first .getTuple Tuple. Util/coerceFromTuple vec))))
 
 (defn enforce-gen-schema
   "Accepts a cascalog generator; if `g` is well-formed, acts as
@@ -675,16 +674,16 @@ cascading tap, returns a new generator with field-names."
         (or (instance? Tap g)
             (vector? g)
             (list? g))
-        (let [pluck (if (instance? Tap g) pluck-tuple, first)
-              size  (count (pluck g))
-              vars  (v/gen-nullable-vars size)]
-          (if (zero? size)
-            (throw-illegal
-             "Data structure is empty -- memory sources must contain tuples.")
-            (->> [[g :>> vars] [:distinct false]]
-                 (map mk-raw-predicate)
-                 (build-rule vars))))
-        :else g))
+        (if-let [pluck (if (instance? Tap g) pluck-tuple, first)]
+          (let [size (count (pluck g))
+                vars (v/gen-nullable-vars size)]
+            (if (zero? size)
+              []
+              [(->> [[g :>> vars] [:distinct false]]
+                    (map mk-raw-predicate)
+                    (build-rule vars))]))
+          [])
+        :else [g]))
 
 ;; TODO: Why does this not use gen?
 (defn connect-to-sink [gen sink]
@@ -697,7 +696,7 @@ cascading tap, returns a new generator with field-names."
 
 (defn combine* [gens distinct?]
   ;; it would be nice if cascalog supported Fields/UNKNOWN as output of generator
-  (let [gens (->> gens (map normalize-gen) (map enforce-gen-schema))
+  (let [gens (->> gens (map normalize-gen) (mapcat enforce-gen-schema))
         outfields (:outfields (first gens))
         pipes (map :pipe gens)
         pipes (for [p pipes]

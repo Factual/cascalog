@@ -193,7 +193,7 @@
 
 (defn- init-pipe-name [{:keys [trap name]}]
   (or (:name trap)
-      name name
+      name
       (uuid)))
 
 (defn- hof-prepend [hof-args & args]

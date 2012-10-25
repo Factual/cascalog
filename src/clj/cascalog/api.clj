@@ -175,7 +175,7 @@
                           (partition 2)
                           (mapcat (partial apply rules/normalize-sink-connection))
                           (unweave))
-        gens      (map rules/enforce-gen-schema gens)
+        gens      (mapcat rules/enforce-gen-schema gens)
         sourcemap (apply merge (map :sourcemap gens))
         trapmap   (apply merge (map :trapmap gens))
         tails     (map rules/connect-to-sink gens sinks)
