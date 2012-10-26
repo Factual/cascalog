@@ -2,6 +2,9 @@
   '[[org.clojure/tools.macro "0.1.1"]
     [jgrapht "0.8.3"]
     [org.clojure/tools.macro "0.1.1"]
+    [factual/cascading-hadoop "2.0.1"]
+    [factual/cascading-core "2.0.1"]
+    [factual/cascading-local "2.0.1"]
     [cascading.kryo "0.4.0"]
     [cascalog/carbonite "1.3.0"]
     [log4j/log4j "1.2.16"]
@@ -9,7 +12,7 @@
     [com.twitter/maple "0.2.0"]
     [jackknife "0.1.2"]])
 
-(defproject factual/cascalog "1.10.2"
+(defproject factual/cascalog "1.10.3"
   :description "Hadoop without the Hassle."
   :url "http://www.cascalog.org"
   :license {:name "Eclipse Public License"
@@ -34,9 +37,6 @@
   :aliases {"all" ["with-profile" "dev:1.2,dev:1.3"]}
   :dependencies ~(conj shared '[org.clojure/clojure "1.4.0"])
   :dev-dependencies [[org.apache.hadoop/hadoop-core "0.20.2-dev"]
-                     [factual/cascading-hadoop "2.0.0-SNAPSHOT"]
-                     [factual/cascading-core "2.0.0-SNAPSHOT"]
-                     [factual/cascading-local "2.0.0-SNAPSHOT"]
                      [midje-cascalog "0.4.0" :exclusions [org.clojure/clojure]]]
   :profiles {:all {:dependencies ~shared}
              :1.2 {:dependencies [[org.clojure/clojure "1.2.1"]]}
