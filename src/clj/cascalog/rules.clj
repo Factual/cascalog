@@ -704,13 +704,17 @@ cascading tap, returns a new generator with field-names."
         outpipe (if-not distinct?
                   (w/assemble pipes (w/group-by Fields/ALL))
                   (w/assemble pipes (w/group-by Fields/ALL) (w/first)))]
-    (p/predicate p/generator
-                 nil
-                 true
-                 (apply merge (map :sourcemap gens))
-                 outpipe
-                 outfields
-                 (apply merge (map :trapmap gens)))))
+    (if (seq gens)
+      (p/predicate p/generator
+                   nil
+                   true
+                   (apply merge (map :sourcemap gens))
+                   outpipe
+                   outfields
+                   (apply merge (map :trapmap gens)))
+
+      ;; If there are no nonempty input taps, then nothing to do. Return an empty output tap.
+      [])))
 
 (defn generic-cascading-fields? [cfields]
   (or (.isSubstitution cfields)
