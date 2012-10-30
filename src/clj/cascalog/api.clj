@@ -220,7 +220,7 @@
                           (proxy [cascading.flow.FlowStepStrategy] []
                             (apply [flow previous-steps this-step]
                               (.setJobName (.getConfig this-step)
-                                           (str jobname " : " (flow-step-name this-step)
+                                           (str jobname " : " (.getName this-step)
                                                 " [" (.size previous-steps) "]")))))
     flow))
 
