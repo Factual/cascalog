@@ -207,8 +207,11 @@
                        (u/project-merge (conf/project-conf)
                                         {"cascading.flow.job.pollinginterval" 100}))
                       (.connect flowdef))]
-    (doseq [[step index] (map vector (seq (.getFlowSteps flow)) (range))]
-      (.setJobName (.getConfig step) (str jobname ":" index)))
+    (.setFlowStepStrategy flow
+                          (proxy [cascading.flow.FlowStepStrategy] []
+                            (apply [flow previous-steps this-step]
+                              (.setJobName (.getConfig this-step)
+                                           (str jobname ":" (.size previous-steps))))))
     flow))
 
 (defn ?-
