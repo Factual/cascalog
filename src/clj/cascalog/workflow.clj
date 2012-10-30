@@ -112,6 +112,8 @@
     (debug-print "pipe-rename" name)
     (Pipe. name p)))
 
+(defn- pipe-with-name [pipe name] (Pipe. name pipe))
+
 (defn- as-pipes
   [pipe-or-pipes]
   (let [pipes (if (instance? Pipe pipe-or-pipes)
@@ -122,63 +124,77 @@
 (defn filter [& args]
   (fn [previous]
     (debug-print "filter" args)
-    (let [[in-fields func-fields spec out-fields include-context] (parse-args args)]
-      (if func-fields
-        (Each. previous in-fields
-               (ClojureMap. func-fields spec include-context) out-fields)
-        (Each. previous in-fields
-               (ClojureFilter. spec include-context))))))
+    (pipe-with-name (str (.getName previous) " -> filter " args)
+      (let [[in-fields func-fields spec out-fields include-context] (parse-args args)]
+        (if func-fields
+          (Each. previous in-fields
+                 (ClojureMap. func-fields spec include-context) out-fields)
+          (Each. previous in-fields
+                 (ClojureFilter. spec include-context)))))))
 
 (defn mapcat [& args]
   (fn [previous]
     (debug-print "mapcat" args)
-    (let [[in-fields func-fields spec out-fields include-context] (parse-args args)]
-      (Each. previous in-fields
-             (ClojureMapcat. func-fields spec include-context) out-fields))))
+    (pipe-with-name (str (.getName previous) " -> mapcat " args)
+      (let [[in-fields func-fields spec out-fields include-context] (parse-args args)]
+        (Each. previous in-fields
+               (ClojureMapcat. func-fields spec include-context) out-fields)))))
 
 (defn map [& args]
   (fn [previous]
     (debug-print "map" args)
-    (let [[in-fields func-fields spec out-fields include-context] (parse-args args)]
-      (Each. previous in-fields
-             (ClojureMap. func-fields spec include-context) out-fields))))
+    (pipe-with-name (str (.getName previous " -> map " args))
+      (let [[in-fields func-fields spec out-fields include-context] (parse-args args)]
+        (Each. previous in-fields
+               (ClojureMap. func-fields spec include-context) out-fields)))))
 
 (defn group-by
   ([]
      (fn [& previous]
        (debug-print "groupby no grouping fields")
-       (GroupBy. (as-pipes previous))))
+       (pipe-with-name (str "group(" (map #(.getName %) previous) ")")
+         (GroupBy. (as-pipes previous)))))
   ([group-fields]
      (fn [& previous]
        (debug-print "groupby" group-fields)
-       (GroupBy. (as-pipes previous) (fields group-fields))))
+       (pipe-with-name (str "group-by " group-fields (map #(.getName %) previous))
+         (GroupBy. (as-pipes previous) (fields group-fields)))))
   ([group-fields sort-fields]
      (fn [& previous]
        (debug-print "groupby" group-fields sort-fields)
-       (GroupBy. (as-pipes previous) (fields group-fields) (fields sort-fields))))
+       (pipe-with-name (str "group-by " group-fields " order-by " sort-fields
+                            (map #(.getName %) previous))
+         (GroupBy. (as-pipes previous) (fields group-fields) (fields sort-fields)))))
   ([group-fields sort-fields reverse-order]
      (fn [& previous]
        (debug-print "groupby" group-fields sort-fields reverse-order)
-       (GroupBy. (as-pipes previous) (fields group-fields) (fields sort-fields) reverse-order))))
+       (pipe-with-name (str "group-by " group-fields " order-by " (if reverse-order "desc" "")
+                            sort-fields
+                            (map #(.getName %) previous))
+         (GroupBy. (as-pipes previous) (fields group-fields) (fields sort-fields) reverse-order)))))
 
 (defn count [^String count-field]
   (fn [previous]
     (debug-print "count" count-field)
-    (Every. previous (Count. (fields count-field)))))
+    (pipe-with-name (str "count " count-field " (" (.getName previous) ")")
+      (Every. previous (Count. (fields count-field))))))
 
 (defn sum [^String in-fields ^String sum-fields]
   (fn [previous]
     (debug-print "sum" in-fields sum-fields)
-    (Every. previous (fields in-fields) (Sum. (fields sum-fields)))))
+    (pipe-with-name (str "sum " sum-fields " (" (.getName previous) ")")
+      (Every. previous (fields in-fields) (Sum. (fields sum-fields))))))
 
 (defn min [^String in-fields ^String min-fields]
   (fn [previous]
     (debug-print "min" in-fields min-fields)
-    (Every. previous (fields in-fields) (Min. (fields min-fields)))))
+    (pipe-with-name (str "min " min-fields " (" (.getName previous) ")")
+      (Every. previous (fields in-fields) (Min. (fields min-fields))))))
 
 (defn max [^String in-fields ^String max-fields]
   (fn [previous]
     (debug-print "groupby" in-fields max-fields)
+    (pipe-with-name )
     (Every. previous (fields in-fields) (Max. (fields max-fields)))))
 
 (defn first []
