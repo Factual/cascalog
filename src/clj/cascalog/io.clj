@@ -99,7 +99,7 @@ Raise an exception if any deletion fails unless silently is true."
 
 (defmacro with-fs-tmp [[fs-sym & tmp-syms] & body]
   (let [tmp-paths (mapcat (fn [t]
-                            [t `(str "/tmp/cascalog_reserved/" (u/uuid))])
+                            [t `(str "/tmp/cascalog_reserved/" '~t "-" (u/uuid))])
                           tmp-syms)]
     `(let [~fs-sym (hadoop/filesystem)
            ~@tmp-paths]
