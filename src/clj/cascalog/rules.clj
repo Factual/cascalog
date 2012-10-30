@@ -734,8 +734,8 @@ cascading tap, returns a new generator with field-names."
         :else       [sink subquery]))
 
 (defn parse-exec-args [[f & rest :as args]]
-  (if (string? f)
-    [f rest]
+  (if (or (string? f) (and (map? f) (:name f)))
+    [(or (:name f) f) rest]
     ["" args]))
 
 (defn get-sink-tuples [^Tap sink]
