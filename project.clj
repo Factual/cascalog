@@ -31,9 +31,6 @@
                 {"releases" {:url "http://maven.corp.factual.com/nexus/content/repositories/releases"}
                  "snapshots" {:url "http://maven.corp.factual.com/nexus/content/repositories/snapshots"}
                  "public" {:url "http://maven.corp.factual.com/nexus/content/groups/public/"}}
-  :plugins [[lein-midje "2.0.0-SNAPSHOT"]
-            [lein-swank "1.4.2"]
-            [lein-clojars "0.8.0"]]
   :aliases {"all" ["with-profile" "dev:1.2,dev:1.3"]}
   :dependencies ~(conj shared '[org.clojure/clojure "1.4.0"])
   :dev-dependencies [[org.apache.hadoop/hadoop-core "0.20.2-dev"]

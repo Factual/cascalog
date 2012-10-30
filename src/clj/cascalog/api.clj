@@ -151,10 +151,15 @@
   "Constructs a query or predicate macro from a list of
   predicates. Predicate macros support destructuring of the input and
   output variables."
-  [outvars & predicates]
-  (let [predicate-builders (vec (map rules/mk-raw-predicate predicates))
+  [& args]
+  (let [[name [outvars & predicates]] (rules/parse-exec-args args)
+        predicate-builders (vec (map rules/mk-raw-predicate predicates))
         outvars-str (if (vector? outvars) (v/vars->str outvars) outvars)]
-    `(rules/build-rule ~outvars-str ~predicate-builders)))
+    `(let [name# ~name
+           constructed# (rules/build-rule ~outvars-str ~predicate-builders)]
+       (if (empty? name#)
+         constructed#
+         (w/with-name name# constructed#)))))
 
 (def cross-join
   (<- [:>] (identity 1 :> _)))

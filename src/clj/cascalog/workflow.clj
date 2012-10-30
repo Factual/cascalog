@@ -112,7 +112,14 @@
     (debug-print "pipe-rename" name)
     (Pipe. name p)))
 
-(defn- pipe-with-name [name pipe] (Pipe. (str name) pipe))
+(defn with-name [name x] (cond (instance? Pipe x) (Pipe. (str name) x)
+                               (map? x)           (merge x {:pipe (with-name name (:pipe x))})
+                               :else              x))
+
+(defn name-of [x] (cond (instance? Pipe x) (.getName x)
+                        (instance? Tap x)  "<tap>"
+                        (map? x)           (name-of (:pipe x))
+                        :else              (str x)))
 
 (defn- as-pipes
   [pipe-or-pipes]
@@ -124,7 +131,7 @@
 (defn filter [& args]
   (fn [previous]
     (debug-print "filter" args)
-    (pipe-with-name (str (.getName previous) " -> filter " args)
+    (with-name (str (name-of previous) " -> filter " args)
       (let [[in-fields func-fields spec out-fields include-context] (parse-args args)]
         (if func-fields
           (Each. previous in-fields
@@ -135,7 +142,7 @@
 (defn mapcat [& args]
   (fn [previous]
     (debug-print "mapcat" args)
-    (pipe-with-name (str (.getName previous) " -> mapcat " args)
+    (with-name (str (name-of previous) " -> mapcat " args)
       (let [[in-fields func-fields spec out-fields include-context] (parse-args args)]
         (Each. previous in-fields
                (ClojureMapcat. func-fields spec include-context) out-fields)))))
@@ -143,7 +150,7 @@
 (defn map [& args]
   (fn [previous]
     (debug-print "map" args)
-    (pipe-with-name (str (.getName previous " -> map " args))
+    (with-name (str (name-of previous) " -> map " args)
       (let [[in-fields func-fields spec out-fields include-context] (parse-args args)]
         (Each. previous in-fields
                (ClojureMap. func-fields spec include-context) out-fields)))))
@@ -152,49 +159,49 @@
   ([]
      (fn [& previous]
        (debug-print "groupby no grouping fields")
-       (pipe-with-name (str "group(" (map #(.getName %) previous) ")")
+       (with-name (str "group(" (clojure.core/map name-of previous) ")")
          (GroupBy. (as-pipes previous)))))
   ([group-fields]
      (fn [& previous]
        (debug-print "groupby" group-fields)
-       (pipe-with-name (str "group-by " group-fields (map #(.getName %) previous))
+       (with-name (str "group-by " group-fields (clojure.core/map name-of previous))
          (GroupBy. (as-pipes previous) (fields group-fields)))))
   ([group-fields sort-fields]
      (fn [& previous]
        (debug-print "groupby" group-fields sort-fields)
-       (pipe-with-name (str "group-by " group-fields " order-by " sort-fields
-                            (map #(.getName %) previous))
+       (with-name (str "group-by " group-fields " order-by " sort-fields
+                            (clojure.core/map name-of previous))
          (GroupBy. (as-pipes previous) (fields group-fields) (fields sort-fields)))))
   ([group-fields sort-fields reverse-order]
      (fn [& previous]
        (debug-print "groupby" group-fields sort-fields reverse-order)
-       (pipe-with-name (str "group-by " group-fields " order-by " (if reverse-order "desc" "")
+       (with-name (str "group-by " group-fields " order-by " (if reverse-order "desc" "")
                             sort-fields
-                            (map #(.getName %) previous))
+                            (clojure.core/map name-of previous))
          (GroupBy. (as-pipes previous) (fields group-fields) (fields sort-fields) reverse-order)))))
 
 (defn count [^String count-field]
   (fn [previous]
     (debug-print "count" count-field)
-    (pipe-with-name (str "count " count-field " (" (.getName previous) ")")
+    (with-name (str "count " count-field " (" (name-of previous) ")")
       (Every. previous (Count. (fields count-field))))))
 
 (defn sum [^String in-fields ^String sum-fields]
   (fn [previous]
     (debug-print "sum" in-fields sum-fields)
-    (pipe-with-name (str "sum " sum-fields " (" (.getName previous) ")")
+    (with-name (str "sum " sum-fields " (" (name-of previous) ")")
       (Every. previous (fields in-fields) (Sum. (fields sum-fields))))))
 
 (defn min [^String in-fields ^String min-fields]
   (fn [previous]
     (debug-print "min" in-fields min-fields)
-    (pipe-with-name (str "min " min-fields " (" (.getName previous) ")")
+    (with-name (str "min " min-fields " (" (name-of previous) ")")
       (Every. previous (fields in-fields) (Min. (fields min-fields))))))
 
 (defn max [^String in-fields ^String max-fields]
   (fn [previous]
     (debug-print "groupby" in-fields max-fields)
-    (pipe-with-name (str "max " max-fields " (" (.getName previous) ")")
+    (with-name (str "max " max-fields " (" (name-of previous) ")")
       (Every. previous (fields in-fields) (Max. (fields max-fields))))))
 
 (defn first []
@@ -254,7 +261,7 @@
 (defn aggregate [& args]
   (fn [^Pipe previous]
     (debug-print "aggregate" args)
-    (pipe-with-name (str "aggregate " args " (" (.getName previous) ")")
+    (with-name (str "aggregate " args " (" (name-of previous) ")")
       (let [[^Fields in-fields func-fields specs ^Fields out-fields include-context]
             (parse-args args Fields/ALL)]
         (Every. previous in-fields
@@ -263,7 +270,7 @@
 (defn buffer [& args]
   (fn [^Pipe previous]
     (debug-print "buffer" args)
-    (pipe-with-name (str "buffer " args " (" (.getName previous ")"))
+    (with-name (str "buffer " args " (" (name-of previous ")"))
       (let [[^Fields in-fields func-fields specs ^Fields out-fields include-context]
             (parse-args args Fields/ALL)]
         (Every. previous in-fields
@@ -272,7 +279,7 @@
 (defn bufferiter [& args]
   (fn [^Pipe previous]
     (debug-print "bufferiter" args)
-    (pipe-with-name (str "bufferiter " args " (" (.getName previous) ")")
+    (with-name (str "bufferiter " args " (" (name-of previous) ")")
       (let [[^Fields in-fields func-fields specs ^Fields out-fields include-context] (parse-args args Fields/ALL)]
         (Every. previous in-fields
                 (ClojureBufferIter. func-fields specs include-context) out-fields)))))
@@ -280,7 +287,7 @@
 (defn multibuffer [& args]
   (fn [pipes fields-sum]
     (debug-print "multibuffer" args)
-    (pipe-with-name (str "multibuffer " args " (" (map #(.getName %) pipes) ")")
+    (with-name (str "multibuffer " args " (" (clojure.core/map name-of pipes) ")")
       (let [[group-fields func-fields specs _ include-context] (parse-args args Fields/ALL)]
         (MultiGroupBy.
          pipes
@@ -293,7 +300,7 @@
   [fields-seq declared-fields joiner]
   (fn [& pipes-seq]
     (debug-print "cogroup" fields-seq declared-fields joiner)
-    (pipe-with-name (str "cogroup (" (map #(.getName %) pipes-seq) ")")
+    (with-name (str "cogroup (" (clojure.core/map name-of pipes-seq) ")")
       (CoGroup.
        (pipes-array pipes-seq)
        (fields-array fields-seq)
