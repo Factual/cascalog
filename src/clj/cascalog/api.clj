@@ -15,7 +15,7 @@
             [cascalog.util :as u]
             [hadoop-util.core :as hadoop])
   (:import [cascading.flow Flow FlowDef]
-           [cascading.flow.hadoop HadoopFlowConnector]
+           [cascading.flow.hadoop HadoopFlowConnector HadoopFlowStep]
            [cascading.tuple Fields]
            [com.twitter.maple.tap MemorySourceTap StdoutTap]
            [cascading.pipe Pipe]))
@@ -172,6 +172,14 @@
 (def cross-join
   (<- [:>] (identity 1 :> _)))
 
+(defn flow-step-name
+  [step]
+  (if (instance? HadoopFlowStep step)
+    (str "[" (str/join ", " (map #(.getName %)
+                                 (filter (partial instance? Pipe) (.. step getGraph vertexSet))))
+         "]")
+    nil))
+
 (defn compile-flow
   "Attaches output taps to some number of subqueries and creates a
   Cascading flow. The flow can be executed with `.complete`, or
@@ -207,11 +215,12 @@
                        (u/project-merge (conf/project-conf)
                                         {"cascading.flow.job.pollinginterval" 100}))
                       (.connect flowdef))]
+
     (.setFlowStepStrategy flow
                           (proxy [cascading.flow.FlowStepStrategy] []
                             (apply [flow previous-steps this-step]
                               (.setJobName (.getConfig this-step)
-                                           (str jobname " : " (.getName this-step)
+                                           (str jobname " : " (flow-step-name this-step)
                                                 " [" (.size previous-steps) "]")))))
     flow))
 
