@@ -112,7 +112,7 @@
     (debug-print "pipe-rename" name)
     (Pipe. name p)))
 
-(defn- pipe-with-name [name pipe] (Pipe. name pipe))
+(defn- pipe-with-name [name pipe] (Pipe. (str name) pipe))
 
 (defn- as-pipes
   [pipe-or-pipes]
