@@ -280,7 +280,7 @@
 (defn multibuffer [& args]
   (fn [pipes fields-sum]
     (debug-print "multibuffer" args)
-    (pipe-with-name (str "multibuffer " args " (" (.getName previous ")"))
+    (pipe-with-name (str "multibuffer " args " (" (map #(.getName %) pipes) ")")
       (let [[group-fields func-fields specs _ include-context] (parse-args args Fields/ALL)]
         (MultiGroupBy.
          pipes
