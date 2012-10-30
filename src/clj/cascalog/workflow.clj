@@ -217,17 +217,19 @@
 (defn select [keep-fields]
   (fn [previous]
     (debug-print "select" keep-fields)
-    (let [ret (Each. previous (fields keep-fields) (Identity.))]
-      ret
-      )))
+    (with-name (str (name-of previous) " : " keep-fields)
+      (let [ret (Each. previous (fields keep-fields) (Identity.))]
+        ret
+        ))))
 
 (defn identity [& args]
   (fn [previous]
     (debug-print "identity" args)
-    ;;  + is a hack. TODO: split up parse-args into parse-args and parse-selector-args
-    (let [[in-fields func-fields _ out-fields _] (parse-args (cons #'+ args) Fields/RESULTS)
-          id-func (if func-fields (Identity. func-fields) (Identity.))]
-      (Each. previous in-fields id-func out-fields))))
+    (with-name (name-of previous)
+      ;;  + is a hack. TODO: split up parse-args into parse-args and parse-selector-args
+      (let [[in-fields func-fields _ out-fields _] (parse-args (cons #'+ args) Fields/RESULTS)
+            id-func (if func-fields (Identity. func-fields) (Identity.))]
+        (Each. previous in-fields id-func out-fields)))))
 
 (defn pipe-name [name]
   (fn [p]
@@ -237,9 +239,10 @@
 (defn insert [newfields vals]
   (fn [previous]
     (debug-print "insert" newfields vals)
-    (Each. previous (KryoInsert. (fields newfields)
-                                 (into-array Object (collectify vals)))
-           Fields/ALL)))
+    (with-name (name-of previous)
+      (Each. previous (KryoInsert. (fields newfields)
+                                   (into-array Object (collectify vals)))
+             Fields/ALL))))
 
 (defn raw-each
   ([arg1] (fn [p] (debug-print "raw-each" arg1) (Each. p arg1)))
