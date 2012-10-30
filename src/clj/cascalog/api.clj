@@ -181,17 +181,19 @@
         trapmap   (apply merge (map :trapmap gens))
         tails     (map rules/connect-to-sink gens sinks)
         sinkmap   (w/taps-map tails sinks)
+        jobname   (if (empty? flow-name)
+                    (str/join ", " (map #(.getName %) tails))
+                    flow-name)
         flowdef   (-> (FlowDef.)
-                      (.setName (if (empty? flow-name)
-                                  (str/join ", " (map #(.getName %) tails))
-                                  flow-name))
+                      (.setName jobname)
                       (.addSources sourcemap)
                       (.addSinks sinkmap)
                       (.addTraps trapmap)
                       (.addTails (into-array Pipe tails)))]
     (-> (HadoopFlowConnector.
          (u/project-merge (conf/project-conf)
-                          {"cascading.flow.job.pollinginterval" 100}))
+                          {"cascading.flow.job.pollinginterval" 100
+                           "mapred.job.name"                    jobname}))
         (.connect flowdef))))
 
 (defn ?-
