@@ -202,12 +202,14 @@
                       (.addSources sourcemap)
                       (.addSinks sinkmap)
                       (.addTraps trapmap)
-                      (.addTails (into-array Pipe tails)))]
-    (-> (HadoopFlowConnector.
-         (u/project-merge (conf/project-conf)
-                          {"cascading.flow.job.pollinginterval" 100
-                           "mapred.job.name"                    jobname}))
-        (.connect flowdef))))
+                      (.addTails (into-array Pipe tails)))
+        flow      (-> (HadoopFlowConnector.
+                       (u/project-merge (conf/project-conf)
+                                        {"cascading.flow.job.pollinginterval" 100}))
+                      (.connect flowdef))]
+    (doseq [[step index] (map vector (seq (.getFlowSteps flow)) (range))]
+      (.setJobName (.getConfig step) (str jobname ":" index)))
+    flow))
 
 (defn ?-
   "Executes 1 or more queries and emits the results of each query to
