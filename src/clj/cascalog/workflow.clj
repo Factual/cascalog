@@ -270,7 +270,7 @@
 (defn buffer [& args]
   (fn [^Pipe previous]
     (debug-print "buffer" args)
-    (with-name (str "buffer " args " (" (name-of previous ")"))
+    (with-name (str "buffer " args " (" (name-of previous) ")")
       (let [[^Fields in-fields func-fields specs ^Fields out-fields include-context]
             (parse-args args Fields/ALL)]
         (Every. previous in-fields
