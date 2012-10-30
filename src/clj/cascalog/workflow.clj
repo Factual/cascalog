@@ -159,25 +159,25 @@
   ([]
      (fn [& previous]
        (debug-print "groupby no grouping fields")
-       (with-name (str "group(" (clojure.core/map name-of previous) ")")
+       (with-name (str "group-by nothing " (clojure.core/mapv name-of previous))
          (GroupBy. (as-pipes previous)))))
   ([group-fields]
      (fn [& previous]
        (debug-print "groupby" group-fields)
-       (with-name (str "group-by " group-fields (clojure.core/map name-of previous))
+       (with-name (str "group-by " group-fields (clojure.core/mapv name-of previous))
          (GroupBy. (as-pipes previous) (fields group-fields)))))
   ([group-fields sort-fields]
      (fn [& previous]
        (debug-print "groupby" group-fields sort-fields)
        (with-name (str "group-by " group-fields " order-by " sort-fields
-                            (clojure.core/map name-of previous))
+                            (clojure.core/mapv name-of previous))
          (GroupBy. (as-pipes previous) (fields group-fields) (fields sort-fields)))))
   ([group-fields sort-fields reverse-order]
      (fn [& previous]
        (debug-print "groupby" group-fields sort-fields reverse-order)
        (with-name (str "group-by " group-fields " order-by " (if reverse-order "desc" "")
                             sort-fields
-                            (clojure.core/map name-of previous))
+                            (clojure.core/mapv name-of previous))
          (GroupBy. (as-pipes previous) (fields group-fields) (fields sort-fields) reverse-order)))))
 
 (defn count [^String count-field]
@@ -287,7 +287,7 @@
 (defn multibuffer [& args]
   (fn [pipes fields-sum]
     (debug-print "multibuffer" args)
-    (with-name (str "multibuffer " args " (" (clojure.core/map name-of pipes) ")")
+    (with-name (str "multibuffer " args " " (clojure.core/mapv name-of pipes))
       (let [[group-fields func-fields specs _ include-context] (parse-args args Fields/ALL)]
         (MultiGroupBy.
          pipes
@@ -300,7 +300,7 @@
   [fields-seq declared-fields joiner]
   (fn [& pipes-seq]
     (debug-print "cogroup" fields-seq declared-fields joiner)
-    (with-name (str "cogroup (" (clojure.core/map name-of pipes-seq) ")")
+    (with-name (str "cogroup " (clojure.core/mapv name-of pipes-seq))
       (CoGroup.
        (pipes-array pipes-seq)
        (fields-array fields-seq)
