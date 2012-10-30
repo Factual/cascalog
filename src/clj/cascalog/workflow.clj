@@ -194,8 +194,8 @@
 (defn max [^String in-fields ^String max-fields]
   (fn [previous]
     (debug-print "groupby" in-fields max-fields)
-    (pipe-with-name )
-    (Every. previous (fields in-fields) (Max. (fields max-fields)))))
+    (pipe-with-name (str "max " max-fields " (" (.getName previous) ")")
+      (Every. previous (fields in-fields) (Max. (fields max-fields))))))
 
 (defn first []
   (fn [previous]
@@ -254,46 +254,51 @@
 (defn aggregate [& args]
   (fn [^Pipe previous]
     (debug-print "aggregate" args)
-    (let [[^Fields in-fields func-fields specs ^Fields out-fields include-context]
-          (parse-args args Fields/ALL)]
-      (Every. previous in-fields
-              (ClojureAggregator. func-fields specs include-context) out-fields))))
+    (pipe-with-name (str "aggregate " args " (" (.getName previous) ")")
+      (let [[^Fields in-fields func-fields specs ^Fields out-fields include-context]
+            (parse-args args Fields/ALL)]
+        (Every. previous in-fields
+                (ClojureAggregator. func-fields specs include-context) out-fields)))))
 
 (defn buffer [& args]
   (fn [^Pipe previous]
     (debug-print "buffer" args)
-    (let [[^Fields in-fields func-fields specs ^Fields out-fields include-context]
-          (parse-args args Fields/ALL)]
-      (Every. previous in-fields
-              (ClojureBuffer. func-fields specs include-context) out-fields))))
+    (pipe-with-name (str "buffer " args " (" (.getName previous ")"))
+      (let [[^Fields in-fields func-fields specs ^Fields out-fields include-context]
+            (parse-args args Fields/ALL)]
+        (Every. previous in-fields
+                (ClojureBuffer. func-fields specs include-context) out-fields)))))
 
 (defn bufferiter [& args]
   (fn [^Pipe previous]
     (debug-print "bufferiter" args)
-    (let [[^Fields in-fields func-fields specs ^Fields out-fields include-context] (parse-args args Fields/ALL)]
-      (Every. previous in-fields
-              (ClojureBufferIter. func-fields specs include-context) out-fields))))
+    (pipe-with-name (str "bufferiter " args " (" (.getName previous) ")")
+      (let [[^Fields in-fields func-fields specs ^Fields out-fields include-context] (parse-args args Fields/ALL)]
+        (Every. previous in-fields
+                (ClojureBufferIter. func-fields specs include-context) out-fields)))))
 
 (defn multibuffer [& args]
   (fn [pipes fields-sum]
     (debug-print "multibuffer" args)
-    (let [[group-fields func-fields specs _ include-context] (parse-args args Fields/ALL)]
-      (MultiGroupBy.
-       pipes
-       group-fields
-       fields-sum
-       (ClojureMultibuffer. func-fields specs include-context)))))
+    (pipe-with-name (str "multibuffer " args " (" (.getName previous ")"))
+      (let [[group-fields func-fields specs _ include-context] (parse-args args Fields/ALL)]
+        (MultiGroupBy.
+         pipes
+         group-fields
+         fields-sum
+         (ClojureMultibuffer. func-fields specs include-context))))))
 
 ;; we shouldn't need a seq for fields (b/c we know how many pipes we have)
 (defn co-group
   [fields-seq declared-fields joiner]
   (fn [& pipes-seq]
     (debug-print "cogroup" fields-seq declared-fields joiner)
-    (CoGroup.
-      (pipes-array pipes-seq)
-      (fields-array fields-seq)
-      (fields declared-fields)
-      joiner)))
+    (pipe-with-name (str "cogroup (" (map #(.getName %) pipes-seq) ")")
+      (CoGroup.
+       (pipes-array pipes-seq)
+       (fields-array fields-seq)
+       (fields declared-fields)
+       joiner))))
 
 (defn mixed-joiner [bool-seq]
   (MixedJoin. (boolean-array bool-seq)))

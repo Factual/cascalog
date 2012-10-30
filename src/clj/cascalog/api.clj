@@ -4,6 +4,7 @@
         [jackknife.def :only (defalias)]
         [jackknife.seq :only (unweave collectify)])
   (:require [clojure.set :as set]
+            [clojure.string :as str]
             [cascalog.vars :as v]
             [cascalog.tap :as tap]
             [cascalog.conf :as conf]
@@ -181,7 +182,9 @@
         tails     (map rules/connect-to-sink gens sinks)
         sinkmap   (w/taps-map tails sinks)
         flowdef   (-> (FlowDef.)
-                      (.setName flow-name)
+                      (.setName (if (empty? flow-name)
+                                  (str/join ", " (map #(.getName %) tails))
+                                  flow-name))
                       (.addSources sourcemap)
                       (.addSinks sinkmap)
                       (.addTraps trapmap)
