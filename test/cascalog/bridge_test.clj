@@ -68,7 +68,7 @@
       f2       => #(instance? Fields %)
       (seq f2) => ["foo" "bar"])))
 
-(tabular 
+(tabular
  (fact "Pipe testing."
    ?pipe => #(instance? Pipe %)
    (.getName ?pipe) => ?check)
@@ -77,7 +77,7 @@
  (w/pipe "name") "name")
 
 (fact "Clojure Filter test."
-  (let [fil (ClojureFilter. (w/fn-spec #'odd?) false)]
+  (let [fil (ClojureFilter. (w/fn-spec #'odd?))]
     (t/invoke-filter fil [1]) => false
     (t/invoke-filter fil [2]) => true))
 
@@ -86,16 +86,13 @@
    (t/invoke-function ?clj-map [1]) => [[2]])
  ?clj-map
  (ClojureMap. (w/fields "num")
-              (w/fn-spec #'inc-wrapped)
-              false)
+              (w/fn-spec #'inc-wrapped))
  (ClojureMap. (w/fields "num")
-              (w/fn-spec #'inc)
-              false))
+              (w/fn-spec #'inc)))
 
 (facts "ClojureMap test, multiple fields."
   (let [m (ClojureMap. (w/fields ["num1" "num2"])
-                       (w/fn-spec #'inc-both)
-                       false)]
+                       (w/fn-spec #'inc-both))]
     (t/invoke-function m [1 2]) => [[2 3]]))
 
 (defn iterate-inc-wrapped [num]
@@ -113,11 +110,9 @@
    (t/invoke-function ?clj-mapcat [1]) => [[2] [3] [4]])
  ?clj-mapcat
  (ClojureMapcat. (w/fields "num")
-                 (w/fn-spec #'iterate-inc-wrapped)
-                 false)
+                 (w/fn-spec #'iterate-inc-wrapped))
  (ClojureMapcat. (w/fields "num")
-                 (w/fn-spec #'iterate-inc)
-                 false))
+                 (w/fn-spec #'iterate-inc)))
 
 (defn sum
   ([] 0)
@@ -126,6 +121,5 @@
 
 (fact "ClojureAggregator test."
   (let [a (ClojureAggregator. (w/fields "sum")
-                              (w/fn-spec #'sum)
-                              false)]
+                              (w/fn-spec #'sum))]
     (t/invoke-aggregator a [[1] [2] [3]]) => [[6]]))
