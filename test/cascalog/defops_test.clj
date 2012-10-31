@@ -18,13 +18,10 @@
   {:great-meta "yes!"}
   [x] x)
 
-(defmapop [ident-stateful [y]]
+(defmapop [ident-closure [y]]
   "Identity operation."
-  {:include-context true
-   :great-meta "yes!"}
-  ([fp op-call] nil)
-  ([fp op-call x] (+ x y 3))
-  ([op-call] nil))
+  {:great-meta "yes!"}
+  ([x] (+ x y 3)))
 
 (deftest defops-arg-parsing-test
   (let [src      [[1] [2]]
@@ -36,7 +33,7 @@
     (fact?<- [[5] [6]]
              [?y]
              (src ?x)
-             (ident-stateful [1] ?x :> ?y))
+             (ident-closure [1] ?x :> ?y))
     (tabular
      (fact
        "Each function will be applied to `mk-query` in turn; all of
@@ -51,8 +48,8 @@
 
 (facts "Metadata testing."
   "Both function and var should contain custom metadata."
-  (meta ident-stateful) => (contains {:great-meta "yes!"})
-  (meta #'ident-stateful) => (contains {:great-meta "yes!"})
+  (meta ident-closure) => (contains {:great-meta "yes!"})
+  (meta #'ident-closure) => (contains {:great-meta "yes!"})
 
   "Both function and var should contain docstrings."
   (meta ident-doc) => (contains {:doc "Identity operation."})
