@@ -686,7 +686,8 @@ cascading tap, returns a new generator with field-names."
         :else [g]))
 
 ;; TODO: Why does this not use gen?
-(defn connect-to-sink [gen sink] (:pipe gen))
+(defn connect-to-sink [gen sink]
+  ((w/pipe-rename (u/uuid)) (:pipe gen)))
 
 (defn normalize-gen [gen]
   (if (instance? Subquery gen)
