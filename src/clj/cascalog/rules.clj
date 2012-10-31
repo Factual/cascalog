@@ -91,11 +91,11 @@
         rename-in (vec (vals rename-map))
         rename-assembly (if (seq rename-in)
                           (w/identity rename-in :fn> outfields :> Fields/SWAP)
-                          identity)
+                          safe-identity)
         assembly   (apply w/compose-straight-assemblies
                           (concat eq-assemblies [rename-assembly]))
         infields (vec (apply concat rename-in equality-sets))
-        tail (connect-op tail (p/predicate p/operation assembly infields outfields false))
+        tail (connect-op tail (p/predicate p/operation {:help-broken :add-drift-op} assembly infields outfields false))
         newout (difference (set (:available-fields tail)) (set rename-in))]
     (merge tail {:drift-map new-drift-map :available-fields newout} )))
 
@@ -203,7 +203,7 @@
   "Returns [new-grouping-fields inserter-assembly]"
   [grouping-fields]
   (if (seq grouping-fields)
-    [grouping-fields identity]
+    [grouping-fields safe-identity]
     (let [newvar (v/gen-nullable-var)]
       [[newvar] (w/insert newvar 1)])))
 
@@ -239,7 +239,7 @@
              (:parallel-agg (first aggs))
              (:buffer? (first aggs)))     (mk-parallel-buffer-agg grouping-fields (first aggs))
              (every? :parallel-agg aggs)  (mk-parallel-aggregator grouping-fields aggs)
-             :else                        [[identity] (map :serial-agg-assembly aggs)]))
+             :else                        [[safe-identity] (map :serial-agg-assembly aggs)]))
 
 (defn- mk-group-by [grouping-fields options]
   (let [{s :sort rev :reverse} options]
@@ -274,6 +274,8 @@
       (struct tailstruct (:ground? prev-tail) (:operations prev-tail)
               (:drift-map prev-tail) total-fields node))))
 
+(defn safe-identity [x & stuff] x)
+
 (defn projection-fields [needed-vars allfields]
   (let [needed-set (set needed-vars)
         all-set    (set allfields)
@@ -291,7 +293,7 @@
 (defn- mk-projection-assembly
   [forceproject projection-fields allfields]
   (if (and (not forceproject) (= (set projection-fields) (set allfields)))
-    identity
+    safe-identity
     (w/select projection-fields)))
 
 (defmulti node->generator (fn [pred & rest] (:type pred)))
@@ -552,6 +554,7 @@
         [gens ops aggs]           (->> raw-predicates
                                        (map (partial apply p/build-predicate options))
                                        (split-predicates))
+
         rule-graph                (g/mk-graph)
         joined                    (->> gens
                                        (map (fn [{:keys [ground? outfields] :as g}]
@@ -742,7 +745,7 @@ cascading tap, returns a new generator with field-names."
     ["" args]))
 
 ;; Query metadata happens immedately after the <- or ?<- operators.
-(defn query-metadata [[m & rest]] (and (map? m) m))
+(defn query-metadata [[m & stuff]] (and (map? m) m))
 
 (defn get-sink-tuples [^Tap sink]
   (let [conf (hadoop/job-conf (conf/project-conf))]

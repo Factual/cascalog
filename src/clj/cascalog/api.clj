@@ -271,8 +271,9 @@
   within the ?<- form."
   [& args]
   ;; This is the best we can do... if want non-static name should just use ?-
-  (let [[name [output & body]] (rules/parse-exec-args args)]
-    `(?- ~name ~output (<- ~@body))))
+  (let [[name [output & body]] (rules/parse-exec-args args)
+        metadata?              (rules/query-metadata args)]
+    `(?- ~name ~output (<- ~metadata? ~@body))))
 
 (defmacro ??<-
   "Like ??-, but for ?<-. Returns a seq of tuples."
@@ -311,10 +312,10 @@ operations or values defined using one of Cascalog's def macros. Vars
 must be stringified when passed to construct. If you're using
 destructuring in a predicate macro, the & symbol must be stringified
 as well."
-  [outvars preds]
+  [metadata outvars preds]
   (let [outvars (v/vars->str outvars)
         preds (for [[p & vars] preds] [p (v/vars->str vars)])]
-    (rules/build-rule outvars preds)))
+    (rules/build-rule metadata outvars preds)))
 
 (defn union
   "Merge the tuples from the subqueries together into a single

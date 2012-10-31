@@ -62,7 +62,7 @@ public class ClojureCascadingBase extends BaseOperation {
     RT.var("cascalog.api", "*operation-call*").bindRoot(op_call);
 
     // Evaluate the before-hook if we have one.
-    final Keyword before_hook_key = RT.keyword("", "before-hook");
+    final Keyword before_hook_key = Keyword.intern("before-hook");
     if (options != null && options.containsKey(before_hook_key)) {
       final Object before_hook = options.entryAt(before_hook_key).val();
       if (before_hook != null)
@@ -71,7 +71,7 @@ public class ClojureCascadingBase extends BaseOperation {
   }
 
   @Override public void cleanup(FlowProcess flow_process, OperationCall op_call) {
-    final Keyword after_hook_key = RT.keyword("", "after-hook");
+    final Keyword after_hook_key = Keyword.intern("after-hook");
     if (options != null && options.containsKey(after_hook_key)) {
       final Object after_hook = options.entryAt(after_hook_key).val();
       if (after_hook != null)

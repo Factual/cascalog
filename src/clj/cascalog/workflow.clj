@@ -434,6 +434,11 @@
   ([x form] (apply form (collectify x)))
   ([x form & more] (apply assemble (assemble x form) more)))
 
+(defn assemble-with-options [options]
+  (fn self ([x] x)
+           ([x form] (apply form (concat (collectify x) [options])))
+           ([x form & more] (apply self (self x form) more))))
+
 (defmacro assembly
   ([args return]
      `(assembly ~args [] ~return))
@@ -506,7 +511,7 @@
 
 (defn compose-straight-assemblies [& all]
   (fn [input & [options]]
-    (apply assemble input all)))
+    (apply (assemble-with-options options) input all)))
 
 (defn path
   {:tag String}

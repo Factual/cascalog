@@ -82,7 +82,7 @@
 
 ;; automatically generates source pipes and attaches to sources
 (defpredicate generator
-  :join-set-var :ground? :sourcemap :pipe :outfields :trapmap)
+  :options :join-set-var :ground? :sourcemap :pipe :outfields :trapmap)
 (defpredicate generator-filter :generator :outvar)
 (defpredicate outconstant-equal)
 
@@ -90,8 +90,9 @@
 
 (defpredicate predicate-macro :pred-fn)
 
+(defn safe-identity [x & stuff] x)
 (def distinct-aggregator
-  (predicate aggregator {} false nil identity (w/fast-first) identity [] []))
+  (predicate aggregator {} false nil safe-identity (w/fast-first) safe-identity [] []))
 
 (defstruct predicate-variables :in :out)
 
@@ -217,9 +218,9 @@
   [buffer? op hof-args infields outfields options]
   (predicate aggregator options buffer?
              nil
-             identity
+             safe-identity
              (apply op (hof-prepend hof-args infields :fn> outfields :> Fields/ALL))
-             identity
+             safe-identity
              infields
              outfields))
 
@@ -241,6 +242,7 @@
                          (w/identity Fields/ALL :fn> outfields :> Fields/RESULTS))]
     (u/safe-assert (empty? infields) "Cannot use :> in a taps vars declaration")
     (predicate generator
+               options
                nil
                (ground-fields? outfields)
                {sourcename tap}
@@ -259,6 +261,7 @@
                          (w/pipe-rename pname)
                          (w/identity Fields/ALL :fn> outfields :> Fields/RESULTS))]
     (predicate generator
+               options
                nil
                (ground-fields? outfields)
                (:sourcemap gen)
@@ -282,9 +285,9 @@
                options
                false
                java-pagg
-               identity
+               safe-identity
                serial-assem
-               identity
+               safe-identity
                infields
                outfields)))
 
@@ -331,8 +334,8 @@
                options
                true
                combiner
-               identity group-assembly
-               identity
+               safe-identity group-assembly
+               safe-identity
                infields
                outfields)))
 
@@ -420,11 +423,11 @@
              options
              true
              nil
-             identity
+             safe-identity
              (w/raw-every (w/fields infields)
                           (CascalogBufferExecutor. (w/fields outfields) op)
                           Fields/ALL)
-             identity
+             safe-identity
              infields
              outfields))
 
@@ -436,11 +439,11 @@
              options
              false
              nil
-             identity
+             safe-identity
              (w/raw-every (w/fields infields)
                           (CascalogAggregatorExecutor. (w/fields outfields) op)
                           Fields/ALL)
-             identity
+             safe-identity
              infields
              outfields))
 
@@ -493,7 +496,7 @@
 (defn- mk-insertion-assembly [subs]
   (if (not-empty subs)
     (apply w/insert (transpose (seq subs)))
-    identity))
+    safe-identity))
 
 (defn- replace-ignored-vars [vars]
   (map #(if (= "_" %) (v/gen-nullable-var) %) vars))
@@ -502,14 +505,14 @@
   (let [non-null-fields (filter v/non-nullable-var? fields)]
     (if (not-empty non-null-fields)
       (non-null? non-null-fields)
-      identity)))
+      safe-identity)))
 
 (defmulti enhance-predicate (fn [pred & rest] (:type pred)))
 
 (defmethod enhance-predicate :operation
   [pred infields inassem outfields outassem]
-  (let [inassem  (or inassem  identity)
-        outassem (or outassem identity)]
+  (let [inassem  (or inassem  safe-identity)
+        outassem (or outassem safe-identity)]
     (merge pred {:assembly (w/compose-straight-assemblies inassem
                                                           (:assembly pred)
                                                           outassem)
@@ -518,8 +521,8 @@
 
 (defmethod enhance-predicate :aggregator
   [pred infields inassem outfields outassem]
-  (let [inassem  (or inassem identity)
-        outassem (or outassem identity)]
+  (let [inassem  (or inassem safe-identity)
+        outassem (or outassem safe-identity)]
     (merge pred {:pregroup-assembly (w/compose-straight-assemblies
                                      inassem
                                      (:pregroup-assembly pred))
@@ -551,7 +554,7 @@
                  (conj dupvars newfield)
                  (w/compose-straight-assemblies assem idassem)])
               [(conj newfields f) dupvars assem]))]
-    (reduce update [[] [] identity] infields)))
+    (reduce update [[] [] safe-identity] infields)))
 
 (defn mk-option-predicate [[op _ infields _]]
   (predicate option op infields))
