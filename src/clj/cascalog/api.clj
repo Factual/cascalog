@@ -20,6 +20,11 @@
            [com.twitter.maple.tap MemorySourceTap StdoutTap]
            [cascading.pipe Pipe]))
 
+;; Dynamic variables set by the underlying Java context. These are nil unless
+;; you inspect them from a thread inside a query.
+(def ^:dynamic *flow-process*   nil)
+(def ^:dynamic *operation-call* nil)
+
 ;; Functions for creating taps and tap helpers
 
 (defalias memory-source-tap w/memory-source-tap)

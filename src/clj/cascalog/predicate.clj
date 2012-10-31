@@ -322,8 +322,7 @@
         group-assembly (w/raw-every (w/fields temp-vars)
                                     (ClojureBuffer. (w/fields outfields)
                                                     (mk-hof-fn-spec
-                                                     (:buffer-hof-var pbuf) hof-args)
-                                                    false)
+                                                     (:buffer-hof-var pbuf) hof-args))
                                     Fields/ALL)]
     (predicate aggregator
                true

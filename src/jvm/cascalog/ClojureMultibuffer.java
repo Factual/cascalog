@@ -30,8 +30,8 @@ import java.util.List;
 
 public class ClojureMultibuffer extends ClojureCascadingBase implements MultiBuffer {
 
-    public ClojureMultibuffer(Fields out_fields, Object[] fn_spec, boolean include_context) {
-        super(out_fields, fn_spec, include_context);
+    public ClojureMultibuffer(Fields out_fields, Object[] fn_spec) {
+        super(out_fields, fn_spec);
     }
 
     public void operate(MultiBufferContext context) {

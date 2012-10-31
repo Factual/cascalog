@@ -24,8 +24,8 @@ import cascading.operation.FilterCall;
 import clojure.lang.ISeq;
 
 public class ClojureFilter extends ClojureCascadingBase implements Filter {
-    public ClojureFilter(Object[] fn_spec, boolean include_context) {
-        super(fn_spec, include_context);
+    public ClojureFilter(Object[] fn_spec) {
+        super(fn_spec);
     }
 
     public boolean isRemove(FlowProcess flow_process, FilterCall filter_call) {

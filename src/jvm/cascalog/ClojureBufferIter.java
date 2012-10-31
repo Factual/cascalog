@@ -28,8 +28,8 @@ import clojure.lang.RT;
 
 public class ClojureBufferIter extends ClojureCascadingBase implements Buffer {
 
-    public ClojureBufferIter(Fields out_fields, Object[] fn_spec, boolean include_context) {
-        super(out_fields, fn_spec, include_context);
+    public ClojureBufferIter(Fields out_fields, Object[] fn_spec) {
+        super(out_fields, fn_spec);
     }
 
     public void operate(FlowProcess flow_process, BufferCall buff_call) {

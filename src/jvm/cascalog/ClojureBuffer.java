@@ -29,8 +29,8 @@ import clojure.lang.RT;
 
 public class ClojureBuffer extends ClojureCascadingBase implements Buffer {
 
-    public ClojureBuffer(Fields out_fields, Object[] fn_spec, boolean include_context) {
-        super(out_fields, fn_spec, include_context);
+    public ClojureBuffer(Fields out_fields, Object[] fn_spec) {
+        super(out_fields, fn_spec);
     }
 
     public void operate(FlowProcess flow_process, BufferCall buff_call) {

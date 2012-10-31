@@ -30,8 +30,8 @@ import java.util.Collection;
 
 public class ClojureAggregator extends ClojureCascadingBase implements Aggregator {
 
-    public ClojureAggregator(Fields out_fields, Object[] fn_spec, boolean include_context) {
-        super(out_fields, fn_spec, include_context);
+    public ClojureAggregator(Fields out_fields, Object[] fn_spec) {
+        super(out_fields, fn_spec);
     }
 
     public void start(FlowProcess flow_process, AggregatorCall ag_call) {

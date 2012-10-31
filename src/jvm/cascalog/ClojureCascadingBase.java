@@ -24,6 +24,7 @@ import cascading.operation.OperationCall;
 import cascading.tuple.Fields;
 import clojure.lang.IFn;
 import clojure.lang.ISeq;
+import clojure.lang.RT;
 
 public class ClojureCascadingBase extends BaseOperation {
     private byte[] serialized_spec;
@@ -34,37 +35,34 @@ public class ClojureCascadingBase extends BaseOperation {
     private OperationCall operation_call;
     private IFn fn;
 
-    public void initialize(Object[] fn_spec, boolean include_context) {
+    public void initialize(Object[] fn_spec) {
         serialized_spec = KryoService.serialize(fn_spec);
-        this.include_context = include_context;
     }
 
-    public ClojureCascadingBase(Object[] fn_spec, boolean include_context) {
-        initialize(fn_spec, include_context);
+    public ClojureCascadingBase(Object[] fn_spec) {
+        initialize(fn_spec);
     }
 
-    public ClojureCascadingBase(Fields fields, Object[] fn_spec, boolean include_context) {
+    public ClojureCascadingBase(Fields fields, Object[] fn_spec) {
         super(fields);
-        initialize(fn_spec, include_context);
+        initialize(fn_spec);
     }
 
     @Override
     public void prepare(FlowProcess flow_process, OperationCall op_call) {
         this.fn_spec = (Object[]) KryoService.deserialize(serialized_spec);
         this.fn = Util.bootFn(fn_spec);
-        if (include_context) {
-            this.flow_process = flow_process;
-            this.operation_call = op_call;
-        }
+
+        // Bind the current flow process and opcall to dynamic variables in Cascalog's namespace.
+        // These are visible as cascalog.api/*flow-process* and cascalog.api/*operation-call*.
+        RT.var("cascalog.api", "*flow-process*").bindRoot(flow_process);
+        RT.var("cascalog.api", "*operation-call*").bindRoot(op_call);
+
     }
 
     protected Object applyFunction(ISeq seq) {
         try {
-            if (include_context) {
-                return this.fn.applyTo(seq.cons(operation_call).cons(flow_process));
-            } else {
-                return this.fn.applyTo(seq);
-            }
+            return this.fn.applyTo(seq);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -72,11 +70,7 @@ public class ClojureCascadingBase extends BaseOperation {
 
     protected Object invokeFunction(Object arg) {
         try {
-            if (include_context) {
-                return this.fn.invoke(flow_process, operation_call, arg);
-            } else {
-                return this.fn.invoke(arg);
-            }
+            return this.fn.invoke(arg);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -85,11 +79,7 @@ public class ClojureCascadingBase extends BaseOperation {
 
     protected Object invokeFunction() {
         try {
-            if (include_context) {
-                return this.fn.invoke(flow_process, operation_call);
-            } else {
-                return this.fn.invoke();
-            }
+            return this.fn.invoke();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
