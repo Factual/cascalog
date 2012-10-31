@@ -158,18 +158,20 @@
   output variables."
   [& args]
   (let [[name [outvars & predicates]] (rules/parse-exec-args args)
+        metadata? (rules/query-metadata args)
         predicate-builders (vec (map rules/mk-raw-predicate predicates))
         outvars-str (if (vector? outvars) (v/vars->str outvars) outvars)]
-    `(rules/build-rule ~outvars-str ~predicate-builders)))
+    `(rules/build-rule ~metadata? ~outvars-str ~predicate-builders)))
 
 (defmacro <-
   "Constructs a query or predicate macro from a list of
   predicates. Predicate macros support destructuring of the input and
   output variables."
   [& args]
-  (let [[name [outvars & predicates]] (rules/parse-exec-args args)]
+  (let [[name [outvars & predicates]] (rules/parse-exec-args args)
+        metadata?                     (rules/query-metadata args)]
     `(let [name# ~name
-           constructed# (<<- ~outvars ~@predicates)]
+           constructed# (<<- ~@(when metadata? [metadata?]) ~outvars ~@predicates)]
        (if (empty? name#)
          constructed#
          (w/with-name name# constructed#)))))

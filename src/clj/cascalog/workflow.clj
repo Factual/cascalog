@@ -107,7 +107,7 @@
 
 (defn pipe-rename
   [^String name]
-  (fn [p]
+  (fn [p & [options]]
     (debug-print "pipe-rename" name)
     (Pipe. name p)))
 
@@ -128,31 +128,31 @@
 
 ;; with a :fn> defined, turns into a function
 (defn filter [& args]
-  (fn [previous]
+  (fn [previous & [options]]
     (debug-print "filter" args)
     (with-name (str (name-of previous) " -> filter " args)
       (let [[in-fields func-fields spec out-fields] (parse-args args)]
         (if func-fields
           (Each. previous in-fields
-                 (ClojureMap. func-fields spec) out-fields)
+                 (ClojureMap. func-fields spec options) out-fields)
           (Each. previous in-fields
-                 (ClojureFilter. spec)))))))
+                 (ClojureFilter. spec options)))))))
 
 (defn mapcat [& args]
-  (fn [previous]
+  (fn [previous & [options]]
     (debug-print "mapcat" args)
     (with-name (str (name-of previous) " -> mapcat " args)
       (let [[in-fields func-fields spec out-fields] (parse-args args)]
         (Each. previous in-fields
-               (ClojureMapcat. func-fields spec) out-fields)))))
+               (ClojureMapcat. func-fields spec options) out-fields)))))
 
 (defn map [& args]
-  (fn [previous]
+  (fn [previous & [options]]
     (debug-print "map" args)
     (with-name (str (name-of previous) " -> map " args)
       (let [[in-fields func-fields spec out-fields] (parse-args args)]
         (Each. previous in-fields
-               (ClojureMap. func-fields spec) out-fields)))))
+               (ClojureMap. func-fields spec options) out-fields)))))
 
 (defn group-by
   ([]
@@ -180,41 +180,41 @@
          (GroupBy. (as-pipes previous) (fields group-fields) (fields sort-fields) reverse-order)))))
 
 (defn count [^String count-field]
-  (fn [previous]
+  (fn [previous & [options]]
     (debug-print "count" count-field)
     (with-name (str "count " count-field " (" (name-of previous) ")")
       (Every. previous (Count. (fields count-field))))))
 
 (defn sum [^String in-fields ^String sum-fields]
-  (fn [previous]
+  (fn [previous & [options]]
     (debug-print "sum" in-fields sum-fields)
     (with-name (str "sum " sum-fields " (" (name-of previous) ")")
       (Every. previous (fields in-fields) (Sum. (fields sum-fields))))))
 
 (defn min [^String in-fields ^String min-fields]
-  (fn [previous]
+  (fn [previous & [options]]
     (debug-print "min" in-fields min-fields)
     (with-name (str "min " min-fields " (" (name-of previous) ")")
       (Every. previous (fields in-fields) (Min. (fields min-fields))))))
 
 (defn max [^String in-fields ^String max-fields]
-  (fn [previous]
+  (fn [previous & [options]]
     (debug-print "groupby" in-fields max-fields)
     (with-name (str "max " max-fields " (" (name-of previous) ")")
       (Every. previous (fields in-fields) (Max. (fields max-fields))))))
 
 (defn first []
-  (fn [previous]
+  (fn [previous & [options]]
     (debug-print "first")
     (Every. previous (First.) Fields/RESULTS)))
 
 (defn fast-first []
-  (fn [previous]
+  (fn [previous & [options]]
     (debug-print "fast-first")
     (Every. previous (FastFirst.) Fields/RESULTS)))
 
 (defn select [keep-fields]
-  (fn [previous]
+  (fn [previous & [options]]
     (debug-print "select" keep-fields)
     (with-name (str (name-of previous) " : " keep-fields)
       (let [ret (Each. previous (fields keep-fields) (Identity.))]
@@ -222,7 +222,7 @@
         ))))
 
 (defn identity [& args]
-  (fn [previous]
+  (fn [previous & [options]]
     (debug-print "identity" args)
     (with-name (name-of previous)
       ;;  + is a hack. TODO: split up parse-args into parse-args and parse-selector-args
@@ -231,12 +231,12 @@
         (Each. previous in-fields id-func out-fields)))))
 
 (defn pipe-name [name]
-  (fn [p]
+  (fn [p & [options]]
     (debug-print "pipe-name" name)
     (Pipe. name p)))
 
 (defn insert [newfields vals]
-  (fn [previous]
+  (fn [previous & [options]]
     (debug-print "insert" newfields vals)
     (with-name (name-of previous)
       (Each. previous (KryoInsert. (fields newfields)
@@ -244,9 +244,9 @@
              Fields/ALL))))
 
 (defn raw-each
-  ([arg1] (fn [p] (debug-print "raw-each" arg1) (Each. p arg1)))
-  ([arg1 arg2] (fn [p] (debug-print "raw-each" arg1 arg2) (Each. p arg1 arg2)))
-  ([arg1 arg2 arg3] (fn [p]
+  ([arg1] (fn [p & [options]] (debug-print "raw-each" arg1) (Each. p arg1)))
+  ([arg1 arg2] (fn [p & [options]] (debug-print "raw-each" arg1 arg2) (Each. p arg1 arg2)))
+  ([arg1 arg2 arg3] (fn [p & [options]]
                       (debug-print "raw-each" arg1 arg2 arg3)
                       (Each. p arg1 arg2 arg3))))
 
@@ -254,37 +254,37 @@
   (raw-each (Debug. true)))
 
 (defn raw-every
-  ([arg1] (fn [p] (debug-print "raw-every" arg1) (Every. p arg1)))
-  ([arg1 arg2] (fn [p] (debug-print "raw-every" arg1 arg2) (Every. p arg1 arg2)))
-  ([arg1 arg2 arg3] (fn [p]
+  ([arg1] (fn [p & [options]] (debug-print "raw-every" arg1) (Every. p arg1)))
+  ([arg1 arg2] (fn [p & [options]] (debug-print "raw-every" arg1 arg2) (Every. p arg1 arg2)))
+  ([arg1 arg2 arg3] (fn [p & [options]]
                       (debug-print "raw-every" arg1 arg2 arg3)
                       (Every. p arg1 arg2 arg3))))
 
 (defn aggregate [& args]
-  (fn [^Pipe previous]
+  (fn [^Pipe previous & [options]]
     (debug-print "aggregate" args)
     (with-name (str "aggregate " args " (" (name-of previous) ")")
       (let [[^Fields in-fields func-fields specs ^Fields out-fields]
             (parse-args args Fields/ALL)]
         (Every. previous in-fields
-                (ClojureAggregator. func-fields specs) out-fields)))))
+                (ClojureAggregator. func-fields specs options) out-fields)))))
 
 (defn buffer [& args]
-  (fn [^Pipe previous]
+  (fn [^Pipe previous & [options]]
     (debug-print "buffer" args)
     (with-name (str "buffer " args " (" (name-of previous) ")")
       (let [[^Fields in-fields func-fields specs ^Fields out-fields]
             (parse-args args Fields/ALL)]
         (Every. previous in-fields
-                (ClojureBuffer. func-fields specs) out-fields)))))
+                (ClojureBuffer. func-fields specs options) out-fields)))))
 
 (defn bufferiter [& args]
-  (fn [^Pipe previous]
+  (fn [^Pipe previous & [options]]
     (debug-print "bufferiter" args)
     (with-name (str "bufferiter " args " (" (name-of previous) ")")
       (let [[^Fields in-fields func-fields specs ^Fields out-fields] (parse-args args Fields/ALL)]
         (Every. previous in-fields
-                (ClojureBufferIter. func-fields specs) out-fields)))))
+                (ClojureBufferIter. func-fields specs options) out-fields)))))
 
 (defn multibuffer [& args]
   (fn [pipes fields-sum]
@@ -295,7 +295,7 @@
          pipes
          group-fields
          fields-sum
-         (ClojureMultibuffer. func-fields specs))))))
+         (ClojureMultibuffer. func-fields specs nil))))))
 
 ;; we shouldn't need a seq for fields (b/c we know how many pipes we have)
 (defn co-group
@@ -505,7 +505,7 @@
   (apply = objs))
 
 (defn compose-straight-assemblies [& all]
-  (fn [input]
+  (fn [input & [options]]
     (apply assemble input all)))
 
 (defn path

@@ -332,6 +332,7 @@
 (defmethod node->generator :join [pred prevgens]
   (debug-print "Creating join" pred)
   (debug-print "Joining" prevgens)
+  (prn pred)
   (let [join-fields (:infields pred)
         num-join-fields (count join-fields)
         sourcemap   (apply merge (map :sourcemap prevgens))
@@ -375,14 +376,14 @@
     (throw (RuntimeException. "Planner exception: operation has multiple inbound generators")))
   (let [prevpred (first prevgens)]
     (merge prevpred {:outfields (concat (:outfields pred) (:outfields prevpred))
-                     :pipe ((:assembly pred) (:pipe prevpred))})))
+                     :pipe ((:assembly pred) (:pipe prevpred) (:options pred))})))
 
 (defmethod node->generator :group [pred prevgens]
   (when-not (= 1 (count prevgens))
     (throw (RuntimeException. "Planner exception: group has multiple inbound generators")))
   (let [prevpred (first prevgens)]
     (merge prevpred {:outfields (:totaloutfields pred)
-                     :pipe ((:assembly pred) (:pipe prevpred))})))
+                     :pipe ((:assembly pred) (:pipe prevpred) (:options pred))})))
 
 ;; forceproject necessary b/c *must* reorder last set of fields coming out to match declared ordering
 (defn build-generator [forceproject needed-vars node]
@@ -535,7 +536,7 @@
                          dups))
      :else parsed-preds)))
 
-(defn- build-query [out-vars raw-predicates]
+(defn- build-query [metadata out-vars raw-predicates]
   (debug-print "outvars:" out-vars)
   (debug-print "raw predicates:" raw-predicates)
   (let [[out-vars raw-predicates drift-map] (->> raw-predicates
@@ -546,7 +547,8 @@
                                                  (mapcat split-outvar-constants)
                                                  (uniquify-query-vars out-vars))
         [raw-opts raw-predicates] (s/separate #(keyword? (first %)) raw-predicates)
-        options                   (mk-options (map p/mk-option-predicate raw-opts))
+        options                   (merge (mk-options (map p/mk-option-predicate raw-opts))
+                                         metadata)
         [gens ops aggs]           (->> raw-predicates
                                        (map (partial apply p/build-predicate options))
                                        (split-predicates))
@@ -644,12 +646,13 @@
                 [raw-predicate])))
           raw-predicates))
 
-(defn build-rule [out-vars raw-predicates]
+(defn build-rule [metadata out-vars raw-predicates]
   (let [raw-predicates (-> raw-predicates
                            expand-predicate-macros)
+        real-metadata (or metadata {})
         parsed (p/parse-variables out-vars :?)]
     (if (seq (parsed :?))
-      (build-query out-vars raw-predicates)
+      (build-query real-metadata out-vars raw-predicates)
       (build-predicate-macro (parsed :<<)
                              (parsed :>>)
                              raw-predicates))))
@@ -737,6 +740,9 @@ cascading tap, returns a new generator with field-names."
   (if (or (string? f) (and (map? f) (:name f)))
     [(or (:name f) f) rest]
     ["" args]))
+
+;; Query metadata happens immedately after the <- or ?<- operators.
+(defn query-metadata [[m & rest]] (and (map? m) m))
 
 (defn get-sink-tuples [^Tap sink]
   (let [conf (hadoop/job-conf (conf/project-conf))]

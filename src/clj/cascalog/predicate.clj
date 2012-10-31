@@ -75,10 +75,10 @@
   `(struct ~aname ~(keyword (name aname)) (uuid) ~@attrs))
 
 ;; for map, mapcat, and filter
-(defpredicate operation :assembly :infields :outfields :allow-on-genfilter?)
+(defpredicate operation :options :assembly :infields :outfields :allow-on-genfilter?)
 
 ;; return a :post-assembly, a :parallel-agg, and a :serial-agg-assembly
-(defpredicate aggregator :buffer? :parallel-agg :pregroup-assembly :serial-agg-assembly :post-assembly :infields :outfields)
+(defpredicate aggregator :options :buffer? :parallel-agg :pregroup-assembly :serial-agg-assembly :post-assembly :infields :outfields)
 
 ;; automatically generates source pipes and attaches to sources
 (defpredicate generator
@@ -91,7 +91,7 @@
 (defpredicate predicate-macro :pred-fn)
 
 (def distinct-aggregator
-  (predicate aggregator false nil identity (w/fast-first) identity [] []))
+  (predicate aggregator {} false nil identity (w/fast-first) identity [] []))
 
 (defstruct predicate-variables :in :out)
 
@@ -204,6 +204,7 @@
 (defn- simpleop-build-predicate
   [op hof-args infields outfields options]
   (predicate operation
+             options
              (apply op (hof-prepend hof-args infields :fn> outfields :> Fields/ALL))
              infields
              outfields
@@ -214,7 +215,7 @@
 
 (defn- simpleagg-build-predicate
   [buffer? op hof-args infields outfields options]
-  (predicate aggregator buffer?
+  (predicate aggregator options buffer?
              nil
              identity
              (apply op (hof-prepend hof-args infields :fn> outfields :> Fields/ALL))
@@ -278,6 +279,7 @@
                                     cascading-agg
                                     Fields/ALL))]
     (predicate aggregator
+               options
                false
                java-pagg
                identity
@@ -322,9 +324,11 @@
         group-assembly (w/raw-every (w/fields temp-vars)
                                     (ClojureBuffer. (w/fields outfields)
                                                     (mk-hof-fn-spec
-                                                     (:buffer-hof-var pbuf) hof-args))
+                                                     (:buffer-hof-var pbuf) hof-args)
+                                                    options)
                                     Fields/ALL)]
     (predicate aggregator
+               options
                true
                combiner
                identity group-assembly
@@ -343,7 +347,7 @@
                                      [outfields Fields/ALL]
                                      [nil nil])
         assembly (w/filter opvar infields :fn> func-fields :> out-selector)]
-    (predicate operation assembly infields outfields false)))
+    (predicate operation options assembly infields outfields false)))
 
 (defmethod predicate-default-var :map [& args] :>)
 (defmethod hof-predicate? :map [op & args]       (:hof? (meta op)))
@@ -375,6 +379,7 @@
         assembly (apply op (hof-prepend hof-args infields
                                         :fn> func-fields :> out-selector))]
     (predicate operation
+               options
                assembly
                infields
                outfields
@@ -385,6 +390,7 @@
 (defmethod build-predicate-specific ::cascalog-function
   [op _ infields outfields options]
   (predicate operation
+             options
              (w/raw-each (w/fields infields)
                          (CascalogFunctionExecutor. (w/fields outfields) op)
                          Fields/ALL)
@@ -404,13 +410,14 @@
                 (w/raw-each c-infields
                             (CascadingFilterToFunction. (first outfields) op)
                             Fields/ALL))]
-    (predicate operation assem infields outfields false)))
+    (predicate operation options assem infields outfields false)))
 
 (defmethod predicate-default-var ::cascalog-buffer [& args] :>)
 (defmethod hof-predicate? ::cascalog-buffer [op & args] false)
 (defmethod build-predicate-specific ::cascalog-buffer
   [op _ infields outfields options]
   (predicate aggregator
+             options
              true
              nil
              identity
@@ -426,6 +433,7 @@
 (defmethod build-predicate-specific ::cascalog-aggregator
   [op _ infields outfields options]
   (predicate aggregator
+             options
              false
              nil
              identity
