@@ -108,6 +108,7 @@
 (defn pipe-rename
   [^String name]
   (fn [p & [options]]
+    (println "renaming " p " to " name)
     (debug-print "pipe-rename" name)
     (Pipe. name p)))
 

@@ -16,6 +16,8 @@
             CascalogBuffer CascalogBufferExecutor CascalogAggregator
             CascalogAggregatorExecutor ClojureParallelAgg ParallelAgg]))
 
+(defn safe-identity [x & stuff] x)
+
 ;; doing it this way b/c pain to put metadata directly on a function
 ;; assembly-maker is a function that takes in infields & outfields and returns
 ;; [preassembly postassembly]
@@ -90,7 +92,6 @@
 
 (defpredicate predicate-macro :pred-fn)
 
-(defn safe-identity [x & stuff] x)
 (def distinct-aggregator
   (predicate aggregator {} false nil safe-identity (w/fast-first) safe-identity [] []))
 
