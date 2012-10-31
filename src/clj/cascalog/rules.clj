@@ -91,7 +91,7 @@
         rename-in (vec (vals rename-map))
         rename-assembly (if (seq rename-in)
                           (w/identity rename-in :fn> outfields :> Fields/SWAP)
-                          safe-identity)
+                          p/safe-identity)
         assembly   (apply w/compose-straight-assemblies
                           (concat eq-assemblies [rename-assembly]))
         infields (vec (apply concat rename-in equality-sets))
@@ -203,7 +203,7 @@
   "Returns [new-grouping-fields inserter-assembly]"
   [grouping-fields]
   (if (seq grouping-fields)
-    [grouping-fields safe-identity]
+    [grouping-fields p/safe-identity]
     (let [newvar (v/gen-nullable-var)]
       [[newvar] (w/insert newvar 1)])))
 
@@ -239,7 +239,7 @@
              (:parallel-agg (first aggs))
              (:buffer? (first aggs)))     (mk-parallel-buffer-agg grouping-fields (first aggs))
              (every? :parallel-agg aggs)  (mk-parallel-aggregator grouping-fields aggs)
-             :else                        [[safe-identity] (map :serial-agg-assembly aggs)]))
+             :else                        [[p/safe-identity] (map :serial-agg-assembly aggs)]))
 
 (defn- mk-group-by [grouping-fields options]
   (let [{s :sort rev :reverse} options]
@@ -274,8 +274,6 @@
       (struct tailstruct (:ground? prev-tail) (:operations prev-tail)
               (:drift-map prev-tail) total-fields node))))
 
-(defn safe-identity [x & stuff] x)
-
 (defn projection-fields [needed-vars allfields]
   (let [needed-set (set needed-vars)
         all-set    (set allfields)
@@ -293,7 +291,7 @@
 (defn- mk-projection-assembly
   [forceproject projection-fields allfields]
   (if (and (not forceproject) (= (set projection-fields) (set allfields)))
-    safe-identity
+    p/safe-identity
     (w/select projection-fields)))
 
 (defmulti node->generator (fn [pred & rest] (:type pred)))
@@ -687,7 +685,7 @@ cascading tap, returns a new generator with field-names."
               []
               [(->> [[g :>> vars] [:distinct false]]
                     (map mk-raw-predicate)
-                    (build-rule vars))]))
+                    (build-rule {} vars))]))
           [])
         :else [g]))
 

@@ -124,7 +124,7 @@
   [pipe-or-pipes]
   (let [pipes (if (instance? Pipe pipe-or-pipes)
                 [pipe-or-pipes] pipe-or-pipes)]
-    (into-array Pipe pipes)))
+    (into-array Pipe (clojure.core/filter #(instance? Pipe %) pipes))))
 
 ;; with a :fn> defined, turns into a function
 (defn filter [& args]

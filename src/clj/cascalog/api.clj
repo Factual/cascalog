@@ -273,7 +273,7 @@
   ;; This is the best we can do... if want non-static name should just use ?-
   (let [[name [output & body]] (rules/parse-exec-args args)
         metadata?              (rules/query-metadata args)]
-    `(?- ~name ~output (<- ~metadata? ~@body))))
+    `(?- ~name ~output (<- ~@(when metadata? [metadata?]) ~@body))))
 
 (defmacro ??<-
   "Like ??-, but for ?<-. Returns a seq of tuples."
