@@ -396,7 +396,8 @@
     (debug-print "build gen:" my-needed project-fields pred)
     (if (and forceproject (not= project-fields needed-vars))
       (throw-runtime (str "Only able to build to " project-fields
-                          " but need " needed-vars))
+                          " but need " needed-vars
+                          " when processing " pred))
       (merge newgen
              {:pipe ((mk-projection-assembly forceproject
                                              project-fields

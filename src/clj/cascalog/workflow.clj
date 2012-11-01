@@ -108,7 +108,6 @@
 (defn pipe-rename
   [^String name]
   (fn [p & [options]]
-    (println "renaming " p " to " name)
     (debug-print "pipe-rename" name)
     (Pipe. name p)))
 
@@ -200,7 +199,7 @@
 
 (defn max [^String in-fields ^String max-fields]
   (fn [previous & [options]]
-    (debug-print "groupby" in-fields max-fields)
+    (debug-print "max" in-fields max-fields)
     (with-name (str "max " max-fields " (" (name-of previous) ")")
       (Every. previous (fields in-fields) (Max. (fields max-fields))))))
 

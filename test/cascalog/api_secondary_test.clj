@@ -56,6 +56,7 @@
     (test?- [["alice" 26 "f"]
              ["bob" 31 nil]]
             (apply construct
+                   {}
                    ["?p" "?a2" "!!g"]
                    [(-> [[age "?p" "?a"] [#'inc "?a" :> "?a2"]]
                         (conj [gender "?p" "!!g"]))]))))
