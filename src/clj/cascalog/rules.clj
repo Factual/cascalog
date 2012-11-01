@@ -739,7 +739,7 @@ cascading tap, returns a new generator with field-names."
         :else       [sink subquery]))
 
 (defn parse-exec-args [[f & rest :as args]]
-  (if (or (string? f) (and (map? f) (:name f)))
+  (if (or (string? f) (map? f))
     [(or (:name f) f) rest]
     ["" args]))
 
