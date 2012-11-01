@@ -31,6 +31,9 @@
             ClojureAggregator Util ClojureBuffer ClojureBufferIter
             FastFirst MultiGroupBy ClojureMultibuffer]))
 
+(def ^:dynamic *serializable-options* [:before-hook :after-hook])
+(defn serializable-options [options] (select-keys options *serializable-options*))
+
 (defn ns-fn-name-pair [v]
   (let [m (meta v)]
     [(str (:ns m)) (str (:name m))]))
@@ -134,9 +137,9 @@
       (let [[in-fields func-fields spec out-fields] (parse-args args)]
         (if func-fields
           (Each. previous in-fields
-                 (ClojureMap. func-fields spec options) out-fields)
+                 (ClojureMap. func-fields spec (serializable-options options)) out-fields)
           (Each. previous in-fields
-                 (ClojureFilter. spec options)))))))
+                 (ClojureFilter. spec (serializable-options options))))))))
 
 (defn mapcat [& args]
   (fn [previous & [options]]
@@ -144,7 +147,7 @@
     (with-name (str (name-of previous) " -> mapcat " args)
       (let [[in-fields func-fields spec out-fields] (parse-args args)]
         (Each. previous in-fields
-               (ClojureMapcat. func-fields spec options) out-fields)))))
+               (ClojureMapcat. func-fields spec (serializable-options options)) out-fields)))))
 
 (defn map [& args]
   (fn [previous & [options]]
@@ -152,7 +155,7 @@
     (with-name (str (name-of previous) " -> map " args)
       (let [[in-fields func-fields spec out-fields] (parse-args args)]
         (Each. previous in-fields
-               (ClojureMap. func-fields spec options) out-fields)))))
+               (ClojureMap. func-fields spec (serializable-options options)) out-fields)))))
 
 (defn group-by
   ([]
@@ -267,7 +270,7 @@
       (let [[^Fields in-fields func-fields specs ^Fields out-fields]
             (parse-args args Fields/ALL)]
         (Every. previous in-fields
-                (ClojureAggregator. func-fields specs options) out-fields)))))
+                (ClojureAggregator. func-fields specs (serializable-options options)) out-fields)))))
 
 (defn buffer [& args]
   (fn [^Pipe previous & [options]]
@@ -276,7 +279,7 @@
       (let [[^Fields in-fields func-fields specs ^Fields out-fields]
             (parse-args args Fields/ALL)]
         (Every. previous in-fields
-                (ClojureBuffer. func-fields specs options) out-fields)))))
+                (ClojureBuffer. func-fields specs (serializable-options options)) out-fields)))))
 
 (defn bufferiter [& args]
   (fn [^Pipe previous & [options]]
@@ -284,7 +287,7 @@
     (with-name (str "bufferiter " args " (" (name-of previous) ")")
       (let [[^Fields in-fields func-fields specs ^Fields out-fields] (parse-args args Fields/ALL)]
         (Every. previous in-fields
-                (ClojureBufferIter. func-fields specs options) out-fields)))))
+                (ClojureBufferIter. func-fields specs (serializable-options options)) out-fields)))))
 
 (defn multibuffer [& args]
   (fn [pipes fields-sum]
