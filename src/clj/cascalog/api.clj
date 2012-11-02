@@ -199,6 +199,10 @@
   for the query and will show up in the JobTracker UI."
   [& args]
   (let [[flow-name bindings] (rules/parse-exec-args args)
+        metadata             (or (rules/query-metadata args) {})
+
+        use-single-name?     (not (empty? flow-name))
+
         [sinks gens] (->> bindings
                           (map rules/normalize-gen)
                           (partition 2)
@@ -209,9 +213,11 @@
         trapmap   (apply merge (map :trapmap gens))
         tails     (map rules/connect-to-sink gens sinks)
         sinkmap   (w/taps-map tails sinks)
-        jobname   (if (empty? flow-name)
-                    (str/join ", " (map #(.getName %) tails))
-                    flow-name)
+
+        jobname   (cond use-single-name?                 flow-name
+                        (empty? (:name-prefix metadata)) (str/join ", " (map #(.getName %) tails))
+                        :else                            (:name-prefix metadata))
+
         flowdef   (-> (FlowDef.)
                       (.setName jobname)
                       (.addSources sourcemap)
@@ -227,10 +233,10 @@
                           (proxy [cascading.flow.FlowStepStrategy] []
                             (apply [flow previous-steps this-step]
                               (.setJobName (.getConfig this-step)
-                                           (if (empty? flow-name)
+                                           (if use-single-name?
+                                             flow-name
                                              (str jobname " : " (.getName this-step)
-                                                  " [" (.size previous-steps) "]")
-                                             flow-name)))))
+                                                  " [" (.size previous-steps) "]"))))))
     flow))
 
 (defn ?-
