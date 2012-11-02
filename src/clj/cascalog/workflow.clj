@@ -108,6 +108,12 @@
   ([^String name]
      (Pipe. name)))
 
+(defn pipe-append
+  [^String s]
+  (fn [p & [options]]
+    (debug-print "pipe-append" s)
+    (Pipe. (str (.getName p) s) p)))
+
 (defn pipe-rename
   [^String name]
   (fn [p & [options]]

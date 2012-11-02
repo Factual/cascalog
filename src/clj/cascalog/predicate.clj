@@ -236,8 +236,8 @@
 (defmethod hof-predicate? ::tap [& args] false)
 (defmethod build-predicate-specific ::tap
   [tap _ infields outfields options]
-  (let [sourcename (uuid)
-        pname (init-pipe-name options)
+  (let [pname (init-pipe-name options)
+        sourcename (str pname "-tap")
         pipe (w/assemble (w/pipe sourcename)
                          (w/pipe-rename pname)
                          (w/identity Fields/ALL :fn> outfields :> Fields/RESULTS))]

@@ -345,6 +345,7 @@ as well."
     (safe-assert (= (set group-vars) (set declared-group-vars))
                  "Declared group vars must be same as intersection of vars of all subqueries")
     (p/predicate p/generator nil
+                 nil
                  true
                  (apply merge (map :sourcemap sqs))
                  ((apply buffer-op args) pipes num-vars)

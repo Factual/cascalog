@@ -332,7 +332,6 @@
 (defmethod node->generator :join [pred prevgens]
   (debug-print "Creating join" pred)
   (debug-print "Joining" prevgens)
-  (prn pred)
   (let [join-fields (:infields pred)
         num-join-fields (count join-fields)
         sourcemap   (apply merge (map :sourcemap prevgens))
@@ -343,7 +342,7 @@
         join-set-fields (map :join-set-var outerone-gens)
         prevgens    (concat inner-gens outer-gens outerone-gens) ; put them in order
         infields    (map :outfields prevgens)
-        inpipes     (map (fn [p f] (w/assemble p (w/select f) (w/pipe-rename (u/uuid))))
+        inpipes     (map (fn [p f] (w/assemble p (w/select f)))
                          (map :pipe prevgens)
                          infields) ; is this necessary?
         join-renames (generate-join-fields num-join-fields (count prevgens))
@@ -369,7 +368,7 @@
                              (w/select keep-fields)
                              ;; maintain the pipe name (important for setting traps on subqueries)
                              (w/pipe-rename (new-pipe-name prevgens))]))]
-    (p/predicate p/generator nil true sourcemap joined keep-fields trapmap)))
+    (p/predicate p/generator nil nil true sourcemap joined keep-fields trapmap)))
 
 (defmethod node->generator :operation [pred prevgens]
   (when-not (= 1 (count prevgens))
@@ -692,7 +691,7 @@ cascading tap, returns a new generator with field-names."
 
 ;; TODO: Why does this not use gen?
 (defn connect-to-sink [gen sink]
-  ((w/pipe-rename (u/uuid)) (:pipe gen)))
+  ((w/pipe-append (gensym)) (:pipe gen)))
 
 (defn normalize-gen [gen]
   (if (instance? Subquery gen)
@@ -711,6 +710,7 @@ cascading tap, returns a new generator with field-names."
                   (w/assemble pipes (w/group-by Fields/ALL) (w/first)))]
     (if (seq gens)
       (p/predicate p/generator
+                   nil
                    nil
                    true
                    (apply merge (map :sourcemap gens))
@@ -744,7 +744,10 @@ cascading tap, returns a new generator with field-names."
     ["" args]))
 
 ;; Query metadata happens immedately after the <- or ?<- operators.
-(defn query-metadata [[m & stuff]] (and (map? m) m))
+(defn query-metadata [[m & stuff]]
+  (cond (and (map? m) (not (contains? m :type))) m
+        (string? m)                              {:name m}
+        :else                                    nil))
 
 (defn get-sink-tuples [^Tap sink]
   (let [conf (hadoop/job-conf (conf/project-conf))]
