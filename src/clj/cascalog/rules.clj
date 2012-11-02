@@ -738,16 +738,10 @@ cascading tap, returns a new generator with field-names."
         (map? sink) (normalize-sink-connection (:sink sink) subquery)
         :else       [sink subquery]))
 
-(defn parse-exec-args [[f & rest :as args]]
-  (if (or (string? f) (and (map? f) (not (contains? f :type))))
-    [(or (:name f) f) rest]
-    ["" args]))
-
-;; Query metadata happens immedately after the <- or ?<- operators.
-(defn query-metadata [[m & stuff]]
-  (cond (and (map? m) (not (contains? m :type))) m
-        (string? m)                              {:name m}
-        :else                                    nil))
+(defn parse-exec-args [[m & rest :as args]]
+  (cond (and (map? m) (not (contains? m :type))) [m         rest]
+        (string? m)                              [{:name m} rest]
+        :else                                    [{}        args]))
 
 (defn get-sink-tuples [^Tap sink]
   (let [conf (hadoop/job-conf (conf/project-conf))]

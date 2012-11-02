@@ -152,29 +152,15 @@
 
 ;; Query creation and execution
 
-(defmacro <<-
-  "Constructs a query or predicate macro from a list of
-  predicates. Predicate macros support destructuring of the input and
-  output variables."
-  [& args]
-  (let [[name [outvars & predicates]] (rules/parse-exec-args args)
-        metadata? (rules/query-metadata args)
-        predicate-builders (vec (map rules/mk-raw-predicate predicates))
-        outvars-str (if (vector? outvars) (v/vars->str outvars) outvars)]
-    `(rules/build-rule ~metadata? ~outvars-str ~predicate-builders)))
-
 (defmacro <-
   "Constructs a query or predicate macro from a list of
   predicates. Predicate macros support destructuring of the input and
   output variables."
   [& args]
-  (let [[name [outvars & predicates]] (rules/parse-exec-args args)
-        metadata?                     (rules/query-metadata args)]
-    `(let [name# ~name
-           constructed# (<<- ~@(when metadata? [metadata?]) ~outvars ~@predicates)]
-       (if (empty? name#)
-         constructed#
-         (w/with-name name# constructed#)))))
+  (let [[metadata [outvars & predicates]] (rules/parse-exec-args args)
+        predicate-builders (vec (map rules/mk-raw-predicate predicates))
+        outvars-str (if (vector? outvars) (v/vars->str outvars) outvars)]
+    `(rules/build-rule ~metadata ~outvars-str ~predicate-builders)))
 
 (def cross-join
   (<- [:>] (identity 1 :> _)))
@@ -198,10 +184,9 @@
    If the first argument is a string, that will be used as the name
   for the query and will show up in the JobTracker UI."
   [& args]
-  (let [[flow-name bindings] (rules/parse-exec-args args)
-        metadata             (or (rules/query-metadata args) {})
-
-        use-single-name?     (not (empty? flow-name))
+  (let [[metadata bindings] (rules/parse-exec-args args)
+        flow-name           (:name metadata)
+        use-single-name?    (not (empty? flow-name))
 
         [sinks gens] (->> bindings
                           (map rules/normalize-gen)
@@ -263,12 +248,12 @@
   If the first argument is a string, that will be used as the name
   for the query and will show up in the JobTracker UI."
   [& args]
-  (let [[name [& subqueries]] (rules/parse-exec-args args)]
+  (let [[metadata [& subqueries]] (rules/parse-exec-args args)]
    (io/with-fs-tmp [fs tmp]
      (hadoop/mkdirs fs tmp)
      (let [outtaps (for [q subqueries] (hfs-seqfile (str tmp "/" (u/uuid))))
            bindings (mapcat vector outtaps subqueries)]
-       (apply ?- name bindings)
+       (apply ?- metadata bindings)
        (doall (map rules/get-sink-tuples outtaps))))))
 
 (defmacro ?<-
@@ -279,9 +264,8 @@
   within the ?<- form."
   [& args]
   ;; This is the best we can do... if want non-static name should just use ?-
-  (let [[name [output & body]] (rules/parse-exec-args args)
-        metadata?              (rules/query-metadata args)]
-    `(?- ~name ~output (<- ~@(when metadata? [metadata?]) ~@body))))
+  (let [[metadata [output & body]] (rules/parse-exec-args args)]
+    `(?- ~metadata ~output (<- ~metadata ~@body))))
 
 (defmacro ??<-
   "Like ??-, but for ?<-. Returns a seq of tuples."
