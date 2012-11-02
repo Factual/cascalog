@@ -78,8 +78,8 @@
 (defn logical-comp [ops logic-fn-var]
   (let [outvars (v/gen-nullable-vars (clojure.core/count ops))]
     (construct
+     {}
      [:<< "!invars" :> "!true?"]
      (conj
       (map (fn [o v] [o :<< "!invars" :> v]) ops outvars)
       [logic-fn-var :<< outvars :> "!true?"]))))
-

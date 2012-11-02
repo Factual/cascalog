@@ -125,7 +125,7 @@
     (with-expected-sinks [sink1 [[1] [2]]
                           sink2 [[2] [3]]]
       (is (= "lalala"
-             (.getName (compile-flow "lalala" (stdout) (<- [?n] (nums ?n))))))
+             (.getName (compile-flow {:name "lalala"} (stdout) (<- [?n] (nums ?n))))))
       (?<- "flow1" sink1
            [?n]
            (nums ?n)
