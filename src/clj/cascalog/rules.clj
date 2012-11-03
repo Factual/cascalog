@@ -647,16 +647,19 @@
                 [raw-predicate])))
           raw-predicates))
 
-(defn build-rule [metadata out-vars raw-predicates]
-  (let [raw-predicates (-> raw-predicates
-                           expand-predicate-macros)
-        real-metadata (or metadata {})
-        parsed (p/parse-variables out-vars :?)]
-    (if (seq (parsed :?))
-      (build-query real-metadata out-vars raw-predicates)
-      (build-predicate-macro (parsed :<<)
-                             (parsed :>>)
-                             raw-predicates))))
+(defn build-rule
+  ([out-vars raw-predicates]
+     (build-rule {} out-vars raw-predicates))
+  ([metadata out-vars raw-predicates]
+     (let [raw-predicates (-> raw-predicates
+                              expand-predicate-macros)
+           real-metadata (or metadata {})
+           parsed (p/parse-variables out-vars :?)]
+       (if (seq (parsed :?))
+         (build-query real-metadata out-vars raw-predicates)
+         (build-predicate-macro (parsed :<<)
+                                (parsed :>>)
+                                raw-predicates)))))
 
 (defn mk-raw-predicate [[op-sym & vars]]
   [op-sym (v/vars->str vars)])
