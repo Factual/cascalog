@@ -21,7 +21,7 @@ public class ClojureKryoSerialization extends KryoSerialization {
         super(conf);
     }
 
-    public void decorateKryo(Kryo k) {
+    public Kryo decorateKryo(Kryo k) {
         try {
             enhanceRegistry(k);
         } catch (Exception e) {
@@ -31,5 +31,6 @@ public class ClojureKryoSerialization extends KryoSerialization {
         k.register(ArrayList.class);
         k.register(HashMap.class);
         k.register(HashSet.class);
+        return k;
     }
 }
