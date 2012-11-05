@@ -20,16 +20,8 @@
 
 (defmapop [ident-closure [y]]
   "Identity operation."
-<<<<<<< HEAD
   {:great-meta "yes!"}
   ([x] (+ x y 3)))
-=======
-  {:include-context true
-   :great-meta "yes!"}
-  ([fp op-call] nil)
-  ([fp op-call x] (+ x y 3))
-  ([op-call] nil))
->>>>>>> 610047459144faf63eb61455ffa2630c69e1a955
 
 (deftest defops-arg-parsing-test
   (let [src      [[1] [2]]
