@@ -28,7 +28,6 @@ import clojure.lang.ISeq;
 import clojure.lang.RT;
 
 public class ClojureMapcat extends ClojureCascadingBase implements Function {
-
   public ClojureMapcat(Fields out_fields, Object[] fn_spec, Associative options) {
     super(out_fields, fn_spec, options);
   }

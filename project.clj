@@ -1,5 +1,6 @@
 (def shared
   '[[org.clojure/tools.macro "0.1.1"]
+<<<<<<< HEAD
     [jgrapht "0.8.3"]
     [org.clojure/tools.macro "0.1.1"]
     [factual/cascading-hadoop "2.0.1"]
@@ -7,12 +8,24 @@
     [factual/cascading-local "2.0.1"]
     [cascading.kryo "0.4.0"]
     [cascalog/carbonite "1.3.0"]
+=======
+    [factual/cascading-hadoop "2.0.0"
+     :exclusions [org.codehaus.janino/janino
+                  org.apache.hadoop/hadoop-core]]
+    [org.clojure/tools.macro "0.1.1"]
+    [cascading.kryo "0.4.5"]
+    [com.twitter/carbonite "1.3.1"]
+>>>>>>> 610047459144faf63eb61455ffa2630c69e1a955
     [log4j/log4j "1.2.16"]
     [hadoop-util "0.2.8"]
-    [com.twitter/maple "0.2.0"]
+    [com.twitter/maple "0.2.2"]
     [jackknife "0.1.2"]])
 
+<<<<<<< HEAD
 (defproject factual/cascalog "1.10.6-SNAPSHOT"
+=======
+(defproject factual/cascalog "1.10.1-factual-SNAPSHOT"
+>>>>>>> 610047459144faf63eb61455ffa2630c69e1a955
   :description "Hadoop without the Hassle."
   :url "http://www.cascalog.org"
   :license {:name "Eclipse Public License"
@@ -31,6 +44,12 @@
                 {"releases" {:url "http://maven.corp.factual.com/nexus/content/repositories/releases"}
                  "snapshots" {:url "http://maven.corp.factual.com/nexus/content/repositories/snapshots"}
                  "public" {:url "http://maven.corp.factual.com/nexus/content/groups/public/"}}
+<<<<<<< HEAD
+=======
+  :plugins [[lein-midje "2.0.0-SNAPSHOT"]
+            [lein-swank "1.4.2"]
+            [lein-clojars "0.8.0"]]
+>>>>>>> 610047459144faf63eb61455ffa2630c69e1a955
   :aliases {"all" ["with-profile" "dev:1.2,dev:1.3"]}
   :dependencies ~(conj shared '[org.clojure/clojure "1.4.0"])
   :dev-dependencies [[org.apache.hadoop/hadoop-core "0.20.2-dev"]
