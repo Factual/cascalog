@@ -173,6 +173,8 @@
          "]")
     nil))
 
+(defn make-named-pipe [p] (if (empty? (.getName p)) (Pipe. (u/uuid) p) p))
+
 (defn compile-flow
   "Attaches output taps to some number of subqueries and creates a
   Cascading flow. The flow can be executed with `.complete`, or
@@ -208,7 +210,7 @@
                       (.addSources sourcemap)
                       (.addSinks sinkmap)
                       (.addTraps trapmap)
-                      (.addTails (into-array Pipe tails)))
+                      (.addTails (into-array Pipe (map make-named-pipe tails))))
         flow      (-> (HadoopFlowConnector.
                        (u/project-merge (conf/project-conf)
                                         {"cascading.flow.job.pollinginterval" 100}))
