@@ -236,7 +236,7 @@
 (defmethod hof-predicate? ::tap [& args] false)
 (defmethod build-predicate-specific ::tap
   [tap _ infields outfields options]
-  (let [pname (gensym (init-pipe-name options))
+  (let [pname (str (gensym (init-pipe-name options)))
         sourcename (str pname "-tap")
         pipe (w/assemble (w/pipe sourcename)
                          (w/pipe-rename pname)
@@ -255,7 +255,7 @@
 (defmethod hof-predicate? :generator [& args] false)
 (defmethod build-predicate-specific :generator
   [gen _ infields outfields options]
-  (let [pname (gensym (init-pipe-name options))
+  (let [pname (str (gensym (init-pipe-name options)))
         trapmap (merge (:trapmap gen)
                        (init-trap-map options))
         pipe (w/assemble (:pipe gen)
