@@ -193,8 +193,14 @@
         {(:name trap) tap}))
     {}))
 
+(defn- nontrivial-trap-name [trap]
+  (when-let [name (:name trap)]
+    (if (re-matches #"[!\?]*_+gen\d" name)
+      nil
+      name)))
+
 (defn- init-pipe-name [{:keys [trap name]}]
-  (or (:name trap)
+  (or (nontrivial-trap-name trap)
       (and name (not (empty? name)) (str (gensym name)))
       (uuid)))
 
