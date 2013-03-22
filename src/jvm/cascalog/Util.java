@@ -1,14 +1,14 @@
 /*
     Copyright 2010 Nathan Marz
- 
-    Project and contact information: http://www.cascalog.org/ 
+
+    Project and contact information: http://www.cascalog.org/
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-   
+
         http://www.apache.org/licenses/LICENSE-2.0
-   
+
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -61,14 +61,16 @@ public class Util {
                 throw new RuntimeException(e);
         }
     }
-    
+
     public static Var getVar(String ns_name, String fn_name) {
         tryRequire(ns_name);
-        return RT.var(ns_name, fn_name);        
+        return RT.var(ns_name, fn_name);
     }
-    
+
     public static IFn bootSimpleFn(String ns_name, String fn_name) {
-        return getVar(ns_name, fn_name);
+        // NOTE(spencer): Eagerly deref the function. This matters because Clojure 1.4.0 has a space
+        // leak bug that holds the head of sequences passed into var-coerced function calls.
+        return (IFn) getVar(ns_name, fn_name).deref();
     }
 
     public static IFn bootFn(Object[] fn_spec) {
@@ -101,8 +103,8 @@ public class Util {
         } else {
             return Arrays.asList(o);
         }
-    }    
-    
+    }
+
     public static IteratorSeq coerceFromTuple(Tuple tuple) {
         return IteratorSeq.create(tuple.iterator());
     }
@@ -134,23 +136,23 @@ public class Util {
     public static boolean truthy(Object obj) {
         return ((obj != null) && (!Boolean.FALSE.equals(obj)));
     }
-    
+
     public static void tupleIntoList(List<Object> ret, Tuple tuple) {
         for (Object aTuple : tuple) {
             ret.add(aTuple);
         }
     }
-    
+
     public static List<Object> tupleToList(Tuple tuple) {
         List<Object> ret = new ArrayList<Object>();
         tupleIntoList(ret, tuple);
         return ret;
     }
-    
+
     public static List<Object> tupleToList(TupleEntry tuple) {
         return tupleToList(tuple.getTuple());
     }
-    
+
     public static List<Object> toList(Object[] arr) {
         List<Object> ret = new ArrayList<Object>();
         Collections.addAll(ret, arr);
