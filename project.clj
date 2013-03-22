@@ -5,7 +5,7 @@
     [factual/cascading-hadoop "2.0.1"]
     [factual/cascading-core "2.0.1"]
     [factual/cascading-local "2.0.1"]
-    [cascading.kryo "0.4.0"]
+    [cascading.kryo "0.4.6"]
     [cascalog/carbonite "1.3.0"]
     [log4j/log4j "1.2.16"]
     [hadoop-util "0.2.8"]
