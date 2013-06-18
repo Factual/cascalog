@@ -22,6 +22,7 @@
                  :post "cascalog-user@googlegroups.com"}
   :min-lein-version "2.0.0"
   :jvm-opts ["-Xmx768m" "-server" "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
+  :javac-options ["-target" "1.6" "-source" "1.6"]
   :source-path "src/clj"
   :java-source-path "src/jvm"
   :source-paths ["src/clj"]
