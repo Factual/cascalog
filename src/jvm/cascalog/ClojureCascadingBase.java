@@ -58,15 +58,21 @@ public class ClojureCascadingBase extends BaseOperation {
 
     // Bind the current flow process and opcall to dynamic variables in Cascalog's namespace.
     // These are visible as cascalog.api/*flow-process* and cascalog.api/*operation-call*.
+    // They're bound twice so that they're visible to before-hooks, and visible to workers.
     RT.var("cascalog.api", "*flow-process*").bindRoot(flow_process);
     RT.var("cascalog.api", "*operation-call*").bindRoot(op_call);
 
     // Evaluate the before-hook if we have one.
     final Keyword before_hook_key = Keyword.intern("before-hook");
+
     if (options != null && options.containsKey(before_hook_key)) {
       final Object before_hook = options.entryAt(before_hook_key).val();
       if (before_hook != null)
         Compiler.eval(before_hook);
+
+      // Bind the vars again, just in case the before-hook managed to reset them.
+      RT.var("cascalog.api", "*flow-process*").bindRoot(flow_process);
+      RT.var("cascalog.api", "*operation-call*").bindRoot(op_call);
     }
   }
 
