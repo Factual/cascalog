@@ -52,9 +52,7 @@ public class ClojureCascadingBase extends BaseOperation {
   }
 
   @Override public void prepare(FlowProcess flow_process, OperationCall op_call) {
-    this.fn_spec = (Object[]) KryoService.deserialize(serialized_spec);
     this.options = (Associative) KryoService.deserialize(options_spec);
-    this.fn = Util.bootFn(fn_spec);
 
     // Bind the current flow process and opcall to dynamic variables in Cascalog's namespace.
     // These are visible as cascalog.api/*flow-process* and cascalog.api/*operation-call*.
@@ -74,6 +72,9 @@ public class ClojureCascadingBase extends BaseOperation {
       RT.var("cascalog.api", "*flow-process*").bindRoot(flow_process);
       RT.var("cascalog.api", "*operation-call*").bindRoot(op_call);
     }
+
+    this.fn_spec = (Object[]) KryoService.deserialize(serialized_spec);
+    this.fn = Util.bootFn(fn_spec);
   }
 
   @Override public void cleanup(FlowProcess flow_process, OperationCall op_call) {
